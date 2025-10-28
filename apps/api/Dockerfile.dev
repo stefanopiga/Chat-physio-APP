@@ -1,0 +1,67 @@
+# ============================================================================
+# Development Dockerfile for FisioRAG API
+# Hot-reload enabled, debugging support, full dev dependencies
+# ============================================================================
+
+FROM python:3.11-slim-bullseye
+
+# Build arguments
+ARG POETRY_VERSION=1.7.1
+
+# Development environment variables
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PYTHONPATH=/app \
+    POETRY_VERSION=${POETRY_VERSION} \
+    POETRY_NO_INTERACTION=1 \
+    POETRY_VIRTUALENVS_CREATE=false \
+    # Story 7.2: Enable all features for development testing
+    ENABLE_CROSS_ENCODER_RERANKING=false \
+    ENABLE_DYNAMIC_MATCH_COUNT=false \
+    ENABLE_CHUNK_DIVERSIFICATION=false
+
+# Install system dependencies + dev tools
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    curl \
+    git \
+    vim \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Poetry
+RUN pip install --no-cache-dir poetry==${POETRY_VERSION}
+
+# Set working directory
+WORKDIR /app
+
+# Copy dependency files
+COPY apps/api/pyproject.toml apps/api/poetry.lock ./
+
+# Install ALL dependencies (including dev)
+RUN poetry install --no-root
+
+# Copy application code (will be overridden by volume mount)
+COPY apps/api/api /app/api
+
+# Expose port
+EXPOSE 8000
+
+# Development command: Uvicorn with hot-reload
+CMD ["uvicorn", "api.main:app", \
+    "--host", "0.0.0.0", \
+    "--port", "8000", \
+    "--reload", \
+    "--log-level", "debug"]
+
+# ============================================================================
+# Usage:
+#   docker build -t fisio-rag-api:dev -f apps/api/Dockerfile.dev .
+#   docker run -p 8000:8000 -v $(pwd)/apps/api:/app --env-file .env fisio-rag-api:dev
+#
+# Features:
+# - Hot reload on code changes
+# - Full dev dependencies (pytest, coverage, etc.)
+# - Debug logging enabled
+# - Volume mount for live code updates
+# ============================================================================
+

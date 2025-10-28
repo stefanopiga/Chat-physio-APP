@@ -1,0 +1,12 @@
+# Frontend
+apps/web/node_modules
+apps/web/dist
+
+# Backend
+apps/api/.venv
+apps/api/__pycache__
+
+# General
+.git
+.vscode
+README.md

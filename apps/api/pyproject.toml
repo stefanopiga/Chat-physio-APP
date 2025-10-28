@@ -1,0 +1,46 @@
+[tool.poetry]
+name = "api"
+version = "0.1.0"
+description = ""
+authors = ["stefano B <borgatostefano3@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+fastapi = "^0.116.1"
+uvicorn = {version = "^0.35.0", extras = ["standard"]}
+uvloop = {version = "^0.19.0", markers = "sys_platform != 'win32'"}
+pyjwt = "^2.10.1"
+python-dotenv = "^1.1.1"
+python-docx = "^1.1.2"
+pypdf = "^5.0.0"
+pymupdf = "^1.24.0"
+tenacity = "^9.0.0"
+langchain-community = "^0.3.3"
+langchain-text-splitters = "^0.3.1"
+docx2txt = "^0.8"
+langchain-core = "^0.3.3"
+langchain-openai = "^0.2.2"
+supabase = "^2.6.0"
+slowapi = "^0.1.9"
+celery = {version = "^5.4.0", extras = ["redis"]}
+asyncpg = "^0.30.0"
+# Story 7.1: tiktoken già fornito da langchain-openai (>=0.7,<1)
+sentence-transformers = "^2.2.2"  # Story 7.2: Cross-encoder models for re-ranking
+
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.3.3"
+httpx = "^0.27.2"
+pytest-cov = "^5.0.0"
+pytest-asyncio = "^0.24.0"
+numpy = "^1.26.0"  # Story 6.4 NFR - Performance SLO test p95 calculations
+
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+addopts = "--cov=api --cov-report=term-missing --cov-fail-under=85"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

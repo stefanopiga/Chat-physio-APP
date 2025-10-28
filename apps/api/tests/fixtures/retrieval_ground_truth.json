@@ -1,0 +1,127 @@
+[
+  {
+    "query_id": "q001",
+    "query": "cos'è il dolore lombare acuto",
+    "query_type": "definitional",
+    "relevant_chunk_ids": [
+      "chunk_lombare_001",
+      "chunk_lombare_003",
+      "chunk_lombare_015"
+    ],
+    "annotator_consensus": 0.85,
+    "notes": "Query semplice definitional - expected 5 chunk retrieval"
+  },
+  {
+    "query_id": "q002",
+    "query": "trattamento fisioterapico per lombalgia acuta",
+    "query_type": "procedural",
+    "relevant_chunk_ids": [
+      "chunk_lombare_005",
+      "chunk_lombare_007",
+      "chunk_lombare_012",
+      "chunk_lombare_018"
+    ],
+    "annotator_consensus": 0.9,
+    "notes": "Query procedurale standard - expected 8 chunk retrieval"
+  },
+  {
+    "query_id": "q003",
+    "query": "differenza tra lordosi e cifosi lombare",
+    "query_type": "comparative",
+    "relevant_chunk_ids": [
+      "chunk_anatom_002",
+      "chunk_anatom_005",
+      "chunk_anatom_008",
+      "chunk_lombare_022",
+      "chunk_anatom_011"
+    ],
+    "annotator_consensus": 0.78,
+    "notes": "Query comparativa complessa - expected 12 chunk retrieval"
+  },
+  {
+    "query_id": "q004",
+    "query": "test McKenzie per valutazione lombare",
+    "query_type": "procedural",
+    "relevant_chunk_ids": [
+      "chunk_test_001",
+      "chunk_test_007",
+      "chunk_lombare_025"
+    ],
+    "annotator_consensus": 0.92,
+    "notes": "Query specifica su test diagnostico"
+  },
+  {
+    "query_id": "q005",
+    "query": "esercizi stabilizzazione core prevenzione mal di schiena",
+    "query_type": "procedural",
+    "relevant_chunk_ids": [
+      "chunk_esercizi_001",
+      "chunk_esercizi_004",
+      "chunk_lombare_030",
+      "chunk_esercizi_012"
+    ],
+    "annotator_consensus": 0.88,
+    "notes": "Query esercizi terapeutici"
+  },
+  {
+    "query_id": "q006",
+    "query": "mobilizzazione vertebrale lombare",
+    "query_type": "procedural",
+    "relevant_chunk_ids": [
+      "chunk_tecnica_002",
+      "chunk_tecnica_009",
+      "chunk_lombare_017"
+    ],
+    "annotator_consensus": 0.87,
+    "notes": "Query tecnica manuale"
+  },
+  {
+    "query_id": "q007",
+    "query": "confronta manipolazione e mobilizzazione vertebrale",
+    "query_type": "comparative",
+    "relevant_chunk_ids": [
+      "chunk_tecnica_001",
+      "chunk_tecnica_002",
+      "chunk_tecnica_015",
+      "chunk_tecnica_020",
+      "chunk_lombare_040"
+    ],
+    "annotator_consensus": 0.82,
+    "notes": "Query comparativa tecniche manuali - expected 12 chunk"
+  },
+  {
+    "query_id": "q008",
+    "query": "cos'è la scoliosi",
+    "query_type": "definitional",
+    "relevant_chunk_ids": ["chunk_scoliosi_001", "chunk_scoliosi_003"],
+    "annotator_consensus": 0.95,
+    "notes": "Query semplice definitional - high consensus"
+  },
+  {
+    "query_id": "q009",
+    "query": "rinforzo muscolare paravertebrale",
+    "query_type": "procedural",
+    "relevant_chunk_ids": [
+      "chunk_esercizi_020",
+      "chunk_esercizi_023",
+      "chunk_lombare_045",
+      "chunk_esercizi_030"
+    ],
+    "annotator_consensus": 0.84,
+    "notes": "Query esercizi rinforzo"
+  },
+  {
+    "query_id": "q010",
+    "query": "quando usare terapia manuale oppure esercizi per lombalgia",
+    "query_type": "comparative",
+    "relevant_chunk_ids": [
+      "chunk_indicazioni_001",
+      "chunk_indicazioni_005",
+      "chunk_lombare_050",
+      "chunk_indicazioni_010",
+      "chunk_lombare_055"
+    ],
+    "annotator_consensus": 0.76,
+    "notes": "Query comparativa indicazioni terapeutiche - expected 12 chunk"
+  }
+]

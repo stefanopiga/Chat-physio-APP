@@ -1,0 +1,59 @@
+# Staging Environment Configuration Template
+# Copy this file to .env.staging.local and replace <placeholders> with real values
+# File: .env.test.local (gitignored for security)
+
+# Supabase Configuration
+SUPABASE_URL=https://************.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=<your-service-role-key>
+SUPABASE_JWT_SECRET=<your-jwt-secret>
+SUPABASE_JWT_ISSUER=https://**************.supabase.co/auth/v1
+
+# Database Configuration
+# IMPORTANT: Use TEST database, NOT production!
+DATABASE_URL=postgresql://postgres.*************:<password>@aws-1-eu-central-2.pooler.supabase.com:6543/postgres
+
+# NOTE: Valori reali gestiti via vault centrale (docs/operations/secrets-rotation.md)
+# OpenAI Configuration
+OPENAI_API_KEY=<your-openai-api-key>
+
+# Celery Configuration
+# Set to false for synchronous test execution (recommended)
+CELERY_ENABLED=false
+CELERY_BROKER_URL=redis://localhost:6379/0
+CELERY_RESULT_BACKEND=redis://localhost:6379/0
+
+# Classification Cache (Story 2.9)
+CLASSIFICATION_CACHE_ENABLED=true
+CLASSIFICATION_CACHE_TTL_SECONDS=604800
+# CLASSIFICATION_CACHE_REDIS_URL=redis://redis:6379/1  # optional: DB dedicato caching
+
+# JWT Configuration
+TEMP_JWT_EXPIRES_MINUTES=15
+
+# Rate Limiting Configuration
+EXCHANGE_CODE_RATE_LIMIT_WINDOW_SEC=60
+EXCHANGE_CODE_RATE_LIMIT_MAX_REQUESTS=10
+
+# Admin Configuration
+ADMIN_EMAIL=<value>
+ADMIN_PSSWD=<value>
+
+# Token per il Developer James
+
+TOKEN_SUPABASE_CHAT_FISIO=<value>
+
+CLOCK_SKEW_LEEWAY_SECONDS=120
+REFRESH_TOKEN_RATE_LIMIT_WINDOW_SEC=3600
+REFRESH_TOKEN_RATE_LIMIT_MAX_REQUESTS=60
+ADMIN_CREATE_TOKEN_RATE_LIMIT_WINDOW_SEC=3600
+ADMIN_CREATE_TOKEN_RATE_LIMIT_MAX_REQUESTS=10
+
+TESTING=true  
+RATE_LIMITING_ENABLED=false
+
+BASE_URL=http://localhost
+
+ADMIN_BEARER=Bearer <valore>
+CHAT_BEARER=Bearer <valore>
+
+

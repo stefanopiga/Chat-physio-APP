@@ -1,0 +1,100 @@
+# Environments
+.env*.local
+.envrc
+.env
+!.env.example
+
+# Secrets and credentials
+*_key_backup.*
+temp_env_*
+
+# IDEs and editors
+.idea/
+.vscode/
+.cursor/
+*.swp
+*~
+
+#repository .bmad-core e cursor rules e files vari
+ARCO.md
+.bmad-core/
+.cursor/
+/bmad-method
+/docs
+/filesMD
+
+#conoscenza del porgetto per 'embedding' 
+/conoscenza
+/conoscenza_Bkup
+
+# BMAD CORE
+
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+
+# Node.js / PNPM
+node_modules
+dist
+.npm
+pnpm-debug.log*
+npm-debug.log*
+yarn-error.log*
+
+# Frontend Build & Cache
+apps/web/dist
+apps/web/.vite
+apps/web/coverage
+.pnp.*
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.egg-info
+*.egg
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+htmlcov/
+.coverage
+
+# Virtual environments
+.venv
+venv
+env
+
+# FastAPI / Uvicorn temp files
+.web-info
+
+# Build artifacts
+build/
+dist/
+
+# Static files collected by backend frameworks
+staticfiles/
+
+# Log files
+*.log
+logs/
+
+# Documentation generator cache
+/docs/.vitepress/cache
+/docs/.vitepress/dist
+
+# GitHub Actions artifacts
+.github/github_log/
+
+# Scripts output
+/scripts/output/
+
+# Temporary files
+temp/
+*.tmp
+payload_*.json
+# BMAD (local only)
+# BMAD (local only)
+# BMAD (local only)

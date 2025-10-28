@@ -1,0 +1,3 @@
+file_path,status,job_id,inserted_chunks,latency_ms,error,timestamp
+"conoscenza\fisioterapia\lombare\1_Radicolopatia_Lombare_COMPLETA.docx",success,45d3e1e8-9755-48b0-ba5a-50ffa4e341cb,151,4741.959810256958,"",2025-10-17T12:56:53.135392+00:00
+"conoscenza\fisioterapia\lombare\2_Radicolopatia_Lombare_PT.2.docx",success,ed523f0c-7e64-4958-b60d-e39b00e047f6,39,1774.5048999786377,"",2025-10-17T12:57:06.042008+00:00

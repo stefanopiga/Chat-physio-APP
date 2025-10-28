@@ -1,0 +1,32 @@
+{
+  "summary": {
+    "total": 2,
+    "success": 2,
+    "failed": 0,
+    "skipped": 0,
+    "total_chunks": 190,
+    "duration_seconds": 42.843716,
+    "start_time": "2025-10-17T12:56:23.200291+00:00",
+    "end_time": "2025-10-17T12:57:06.044007+00:00"
+  },
+  "results": [
+    {
+      "file_path": "conoscenza\\fisioterapia\\lombare\\1_Radicolopatia_Lombare_COMPLETA.docx",
+      "status": "success",
+      "job_id": "45d3e1e8-9755-48b0-ba5a-50ffa4e341cb",
+      "inserted_chunks": 151,
+      "latency_ms": 4741.959810256958,
+      "error": null,
+      "timestamp": "2025-10-17T12:56:53.135392+00:00"
+    },
+    {
+      "file_path": "conoscenza\\fisioterapia\\lombare\\2_Radicolopatia_Lombare_PT.2.docx",
+      "status": "success",
+      "job_id": "ed523f0c-7e64-4958-b60d-e39b00e047f6",
+      "inserted_chunks": 39,
+      "latency_ms": 1774.5048999786377,
+      "error": null,
+      "timestamp": "2025-10-17T12:57:06.042008+00:00"
+    }
+  ]
+}

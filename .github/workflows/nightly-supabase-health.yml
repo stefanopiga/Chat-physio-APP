@@ -1,0 +1,49 @@
+﻿name: Nightly Supabase Health Check
+
+on:
+  schedule:
+    - cron: "0 2 * * *"
+  workflow_dispatch:
+
+jobs:
+  connectivity:
+    runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Verify required secrets
+        run: |
+          if [ -z "${DATABASE_URL:-}" ]; then
+            echo "Production DATABASE_URL secret not provided." >&2
+            exit 1
+          fi
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install asyncpg python-dotenv
+
+      - name: Run Supabase connectivity check
+        run: |
+          DATE=$(date +%Y%m%d)
+          python scripts/validation/database_connectivity_test.py --out reports/db_connectivity_test_${DATE}.log
+
+      - name: Simulate downtime drill
+        run: |
+          DATE=$(date +%Y%m%d)
+          python scripts/validation/database_connectivity_test.py --simulate-downtime --out reports/supabase-downtime-drill_${DATE}.log || true
+
+      - name: Upload health artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: supabase-health-${{ github.run_id }}
+          path: |
+            reports/db_connectivity_test_*.log
+            reports/supabase-downtime-drill-*.log

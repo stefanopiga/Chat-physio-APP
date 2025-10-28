@@ -1,0 +1,129 @@
+# ============================================================================
+# Docker Compose - Development Configuration
+# Hot-reload enabled, full dev dependencies, debugging support
+# ============================================================================
+
+services:
+  proxy:
+    container_name: fisio-rag-proxy-dev
+    image: traefik:v3.1
+    command:
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+      - "--log.level=DEBUG" # Dev: debug logging
+    ports:
+      - "80:80"
+      - "18080:8080" # Traefik dashboard
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - fisio-rag-net
+
+  api:
+    container_name: fisio-rag-api-dev
+    build:
+      context: .
+      dockerfile: ./apps/api/Dockerfile.dev
+    env_file:
+      - ./.env
+    volumes:
+      # Dev: Mount source code for hot-reload
+      - ./apps/api/api:/app/api
+      - ./apps/api/tests:/app/tests
+      - model_cache:/app/.cache/torch/sentence_transformers
+    environment:
+      - PYTHONUNBUFFERED=1
+      - DEBUG=true
+      - LOG_LEVEL=DEBUG
+      - CELERY_ENABLED=true
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+      # Story 7.2: Enable features for dev testing
+      - ENABLE_CROSS_ENCODER_RERANKING=${ENABLE_CROSS_ENCODER_RERANKING:-false}
+      - ENABLE_DYNAMIC_MATCH_COUNT=${ENABLE_DYNAMIC_MATCH_COUNT:-false}
+      - ENABLE_CHUNK_DIVERSIFICATION=${ENABLE_CHUNK_DIVERSIFICATION:-false}
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.api-router.rule=Host(`localhost`) && PathPrefix(`/api`)"
+      - "traefik.http.routers.api-router.priority=100"
+      - "traefik.http.routers.api-router.service=api-service"
+      - "traefik.http.services.api-service.loadbalancer.server.port=8000"
+      - "traefik.http.routers.api-health-router.rule=Host(`localhost`) && Path(`/health`)"
+      - "traefik.http.routers.api-health-router.priority=150"
+      - "traefik.http.routers.api-health-router.service=api-service"
+    networks:
+      - fisio-rag-net
+    depends_on:
+      - redis
+
+  celery-worker:
+    container_name: fisio-rag-celery-worker-dev
+    build:
+      context: .
+      dockerfile: ./apps/api/Dockerfile.dev
+    command: celery -A api.celery_app:celery_app worker --loglevel=DEBUG
+    volumes:
+      - ./apps/api/api:/app/api
+    env_file:
+      - ./.env
+    environment:
+      - PYTHONUNBUFFERED=1
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+    networks:
+      - fisio-rag-net
+    depends_on:
+      - redis
+      - api
+
+  redis:
+    image: redis:alpine
+    container_name: fisio-rag-redis-dev
+    command: redis-server --appendonly yes
+    ports:
+      - "6379:6379" # Dev: expose Redis port for debugging
+    volumes:
+      - redis_data:/data
+    networks:
+      - fisio-rag-net
+
+  web:
+    container_name: fisio-rag-web-dev
+    build:
+      context: .
+      dockerfile: ./apps/web/Dockerfile
+    volumes:
+      - ./apps/web:/app
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.web-router.rule=Host(`localhost`)"
+      - "traefik.http.routers.web-router.priority=1"
+      - "traefik.http.routers.web-router.service=web-service"
+      - "traefik.http.services.web-service.loadbalancer.server.port=80"
+    networks:
+      - fisio-rag-net
+
+networks:
+  fisio-rag-net:
+    driver: bridge
+
+volumes:
+  redis_data:
+    driver: local
+  model_cache:
+    driver: local
+# ============================================================================
+# Usage:
+#   docker compose -f docker-compose.dev.yml up --build
+#   docker compose -f docker-compose.dev.yml down -v
+#
+# Features:
+# - Hot-reload on code changes
+# - Debug logging enabled
+# - Redis port exposed for debugging
+# - Full dev dependencies
+# - Story 7.2 features testable with env var overrides
+# ============================================================================
+

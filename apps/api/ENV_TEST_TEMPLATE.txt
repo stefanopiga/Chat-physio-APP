@@ -1,0 +1,78 @@
+﻿# Test Environment Configuration Template
+# Copy this file to .env.test.local and replace <placeholders> with real values
+# File: .env.test.local (gitignored for security)
+
+# Supabase Configuration
+SUPABASE_URL=https://**************.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=<your-service-role-key>
+SUPABASE_JWT_SECRET=<your-jwt-secret>
+SUPABASE_JWT_ISSUER=https://******************.supabase.co/auth/v1
+
+# Database Configuration
+# IMPORTANT: Use TEST database, NOT production!
+DATABASE_URL=postgresql://postgres.******************:<password>@aws-1-eu-central-2.pooler.supabase.com:6543/postgres
+
+# NOTE: Valori reali gestiti via vault centrale (docs/operations/secrets-rotation.md)
+# OpenAI Configuration
+OPENAI_API_KEY=<your-openai-api-key>
+
+# LLM Model Configuration (Story 2.12)
+OPENAI_MODEL=gpt-4o-mini
+OPENAI_TEMPERATURE_CHAT=
+OPENAI_TEMPERATURE_CLASSIFICATION=1.0
+LLM_CONFIG_REFACTOR_ENABLED=true
+
+
+# Celery Configuration
+# Set to false for synchronous test execution (recommended)
+CELERY_ENABLED=false
+CELERY_BROKER_URL=redis://localhost:6379/0
+CELERY_RESULT_BACKEND=redis://localhost:6379/0
+
+# Classification Cache (Story 2.9)
+CLASSIFICATION_CACHE_ENABLED=true
+CLASSIFICATION_CACHE_TTL_SECONDS=604800
+# CLASSIFICATION_CACHE_REDIS_URL=<value>  # optional: DB dedicato caching
+
+# JWT Configuration
+TEMP_JWT_EXPIRES_MINUTES=15
+
+# Rate Limiting Configuration
+EXCHANGE_CODE_RATE_LIMIT_WINDOW_SEC=60
+EXCHANGE_CODE_RATE_LIMIT_MAX_REQUESTS=10
+
+# Admin Configuration
+ADMIN_EMAIL=<value>
+ADMIN_PSSWD=<value>
+
+# Token per il Developer James
+
+TOKEN_SUPABASE_CHAT_FISIO=<value>
+
+CLOCK_SKEW_LEEWAY_SECONDS=120
+REFRESH_TOKEN_RATE_LIMIT_WINDOW_SEC=3600
+REFRESH_TOKEN_RATE_LIMIT_MAX_REQUESTS=60
+ADMIN_CREATE_TOKEN_RATE_LIMIT_WINDOW_SEC=3600
+ADMIN_CREATE_TOKEN_RATE_LIMIT_MAX_REQUESTS=10
+
+TESTING=true  
+RATE_LIMITING_ENABLED=false
+
+# Story 7.2: Advanced Retrieval Optimization (Feature Flags)
+ENABLE_CROSS_ENCODER_RERANKING=false
+ENABLE_DYNAMIC_MATCH_COUNT=false
+ENABLE_CHUNK_DIVERSIFICATION=false
+
+# Story 7.2: Cross-Encoder Configuration
+CROSS_ENCODER_MODEL_NAME=cross-encoder/ms-marco-MiniLM-L-6-v2
+CROSS_ENCODER_OVER_RETRIEVE_FACTOR=3
+CROSS_ENCODER_THRESHOLD_POST_RERANK=0.6
+
+# Story 7.2: Dynamic Retrieval Configuration
+DYNAMIC_MATCH_COUNT_MIN=5
+DYNAMIC_MATCH_COUNT_MAX=12
+DYNAMIC_MATCH_COUNT_DEFAULT=8
+
+# Story 7.2: Diversification Configuration
+DIVERSIFICATION_MAX_PER_DOCUMENT=2
+DIVERSIFICATION_PRESERVE_TOP_N=3
