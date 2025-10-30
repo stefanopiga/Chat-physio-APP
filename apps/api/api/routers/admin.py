@@ -23,7 +23,16 @@ from ..schemas.admin import (
     EmbeddingHealthSummary,
     DocumentEmbeddingStatus,
 )
-from ..analytics.analytics import aggregate_analytics, AnalyticsResponse
+from ..analytics.analytics import (
+    aggregate_analytics, 
+    AnalyticsResponse,
+    AdvancedAnalyticsResponse,
+    aggregate_temporal_distribution,
+    aggregate_quality_metrics,
+    aggregate_problematic_queries,
+    aggregate_engagement_stats,
+    aggregate_top_chunks
+)
 from ..knowledge_base.search import perform_semantic_search
 from ..dependencies import verify_jwt_token, _is_admin
 from ..config import Settings, get_settings
@@ -196,20 +205,26 @@ def _analytics_rate_limit_key(request: Request, settings: Settings) -> str:
     return _admin_rate_limit_key(request, settings)
 
 
-@router.get("/analytics", response_model=AnalyticsResponse)
+@router.get("/analytics")
 @limiter.limit("30/hour")
 def get_admin_analytics(
     request: Request,
     payload: Annotated[dict, Depends(verify_jwt_token)],
-    settings: Annotated[Settings, Depends(get_settings)]
+    settings: Annotated[Settings, Depends(get_settings)],
+    time_filter: str = "week",
+    include_advanced: bool = False
 ):
     """
-    Analytics Dashboard endpoint (Story 4.2).
+    Analytics Dashboard endpoint (Story 4.2 & 4.2.2).
     
     Aggrega dati da store in-memory:
     - chat_messages_store: query utenti
     - feedback_store: thumbs up/down
     - ag_latency_samples_ms: performance metrics
+    
+    Query params:
+    - time_filter: Periodo dati ("day", "week", "month", "all") - default "week"
+    - include_advanced: Se True, include metriche avanzate (default False - AC9 backward compatibility)
     
     Security:
     - Admin-only access
@@ -217,6 +232,7 @@ def get_admin_analytics(
     - Session IDs hashati (privacy)
     
     Note: Dati volatili (tech debt R-4.2-1 accepted per MVP)
+    Performance Constraint: Finestra temporale max 30 giorni (in-memory limitation until Story 4.2.1)
     """
     # Autorizzazione admin
     if not _is_admin(payload):
@@ -225,23 +241,67 @@ def get_admin_analytics(
             detail="Forbidden: admin only"
         )
     
-    # Aggregazione dati
-    analytics = aggregate_analytics(
+    # AC7: Validazione time_filter
+    if time_filter not in ["day", "week", "month", "all"]:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid time_filter. Allowed values: day, week, month, all"
+        )
+    
+    # Aggregazione dati base (Story 4.2)
+    base_analytics = aggregate_analytics(
         chat_messages_store=chat_messages_store,
         feedback_store=feedback_store,
         ag_latency_samples_ms=ag_latency_samples_ms,
     )
     
-    # Audit log
+    # AC9: Backward compatibility - return base analytics if advanced not requested
+    if not include_advanced:
+        logger.info({
+            "event": "analytics_accessed",
+            "path": "/api/v1/admin/analytics",
+            "user_id": payload.get("sub"),
+            "total_queries": base_analytics.overview.total_queries,
+            "total_sessions": base_analytics.overview.total_sessions,
+            "include_advanced": False
+        })
+        return base_analytics
+    
+    # Story 4.2.2: Metriche avanzate
+    temporal_dist = aggregate_temporal_distribution(chat_messages_store, time_filter)
+    quality = aggregate_quality_metrics(chat_messages_store)
+    problematic = aggregate_problematic_queries(chat_messages_store, feedback_store)
+    engagement = aggregate_engagement_stats(chat_messages_store, feedback_store)
+    top_chunks = aggregate_top_chunks(chat_messages_store)
+    
+    # Audit log con metriche avanzate
     logger.info({
-        "event": "analytics_accessed",
+        "event": "analytics_accessed_advanced",
         "path": "/api/v1/admin/analytics",
         "user_id": payload.get("sub"),
-        "total_queries": analytics.overview.total_queries,
-        "total_sessions": analytics.overview.total_sessions,
+        "total_queries": base_analytics.overview.total_queries,
+        "total_sessions": base_analytics.overview.total_sessions,
+        "time_filter": time_filter,
+        "include_advanced": True,
+        "temporal_slots": len(temporal_dist),
+        "problematic_queries_count": problematic.total_count,
+        "top_chunks_count": top_chunks.total_chunks_count
     })
     
-    return analytics
+    return AdvancedAnalyticsResponse(
+        # Base metrics
+        overview=base_analytics.overview,
+        top_queries=base_analytics.top_queries,
+        feedback_summary=base_analytics.feedback_summary,
+        performance_metrics=base_analytics.performance_metrics,
+        
+        # Advanced metrics
+        temporal_distribution=temporal_dist,
+        quality_metrics=quality,
+        problematic_queries=problematic,
+        engagement_stats=engagement,
+        top_chunks=top_chunks
+    )
 
 
 @router.get("/knowledge-base/classification-cache/metrics")

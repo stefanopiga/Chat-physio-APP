@@ -36,7 +36,25 @@ const ChatMessagesList: React.FC<Props> = ({ messages, loading = false }) => {
       setPendingFeedback(messageId);
       // Garantisce che il render del bottone disabilitato avvenga prima della risposta
       await new Promise((resolve) => setTimeout(resolve, 0));
-      await apiClient.sendFeedback(sessionId, messageId, vote);
+
+      // 🐛 DEBUG Story 4.2.3: Log feedback request
+      console.log("[Feedback] Sending:", { sessionId, messageId, vote });
+
+      const response = await apiClient.sendFeedback(sessionId, messageId, vote);
+
+      // 🐛 DEBUG: Log response
+      console.log("[Feedback] Response:", response);
+
+      // ✅ SUCCESS: Visual feedback per utente
+      console.log(
+        `✅ Feedback ${vote} inviato con successo per message ${messageId}`
+      );
+    } catch (error) {
+      // ❌ ERROR: Mostra errore in console E notifica utente
+      console.error("[Feedback] ERRORE:", error);
+      alert(
+        `❌ Errore invio feedback: ${error instanceof Error ? error.message : "Errore sconosciuto"}`
+      );
     } finally {
       // Mantiene lo stato disabilitato brevemente per UX/test stability
       setTimeout(() => setPendingFeedback(null), 200);
@@ -58,7 +76,10 @@ const ChatMessagesList: React.FC<Props> = ({ messages, loading = false }) => {
           <div className="text-[12px] opacity-70">{m.role}</div>
           <div data-testid="message-content">{m.content}</div>
           {m.role === "assistant" && m.citations && m.citations.length > 0 && (
-            <div className="mt-1.5 flex flex-wrap gap-1.5 relative" data-testid="message-citations">
+            <div
+              className="mt-1.5 flex flex-wrap gap-1.5 relative"
+              data-testid="message-citations"
+            >
               {m.citations.map((c) => (
                 <div key={c.chunk_id} className="relative">
                   <CitationBadge
@@ -108,7 +129,7 @@ const ChatMessagesList: React.FC<Props> = ({ messages, loading = false }) => {
           )}
         </div>
       ))}
-      
+
       {/* Loading indicator in-chat */}
       {loading && <LoadingIndicator />}
     </div>

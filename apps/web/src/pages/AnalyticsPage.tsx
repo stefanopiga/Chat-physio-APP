@@ -54,6 +54,63 @@ interface AnalyticsData {
   performance_metrics: PerformanceMetrics;
 }
 
+// -------------------------------
+// Types - Story 4.2.2 (Advanced)
+// -------------------------------
+
+interface TemporalDistribution {
+  hour_slot: number;
+  query_count: number;
+  label: string;
+}
+
+interface QualityMetrics {
+  avg_response_length_chars: number;
+  avg_chunks_per_response: number;
+  chunks_distribution: {
+    min: number;
+    max: number;
+    median: number;
+  };
+}
+
+interface ProblematicQuery {
+  query_text: string;
+  negative_feedback_count: number;
+  first_seen: string;
+}
+
+interface ProblematicQueriesResponse {
+  queries: ProblematicQuery[];
+  total_count: number; // AC3: Total problematic queries count
+}
+
+interface EngagementStats {
+  avg_session_duration_minutes: number;
+  avg_queries_per_session: number;
+  feedback_conversion_rate: number;
+}
+
+interface ChunkRetrievalStat {
+  chunk_id: string;
+  document_id: string;
+  retrieval_count: number;
+  avg_similarity_score: number;
+}
+
+interface ChunkRetrievalResponse {
+  top_chunks: ChunkRetrievalStat[];
+  total_chunks_count: number; // AC5: Total unique chunks used
+}
+
+interface AdvancedAnalyticsData extends AnalyticsData {
+  temporal_distribution: TemporalDistribution[];
+  quality_metrics: QualityMetrics;
+  problematic_queries: ProblematicQueriesResponse; // AC3: includes total_count
+  engagement_stats: EngagementStats;
+  top_chunks: ChunkRetrievalResponse; // AC5: includes total_chunks_count
+}
+
 type FeedbackChartData = {
   name: string;
   count: number;
@@ -64,9 +121,12 @@ type FeedbackChartData = {
 // -------------------------------
 
 const AnalyticsPage: React.FC = () => {
-  const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);
+  const [analytics, setAnalytics] = useState<AdvancedAnalyticsData | null>(
+    null
+  );
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [timeFilter, setTimeFilter] = useState<string>("week"); // AC7: Default "week"
 
   const fetchAnalytics = async () => {
     setLoading(true);
@@ -77,17 +137,34 @@ const AnalyticsPage: React.FC = () => {
         throw new Error("Token di autenticazione mancante");
       }
 
-      const res = await fetch("/api/v1/admin/analytics", {
-        headers: {
-          Authorization: `Bearer ${data.session.access_token}`,
-        },
-      });
+      // AC7: Mappatura UI → API query param + AC9: include_advanced=true
+      const res = await fetch(
+        `/api/v1/admin/analytics?time_filter=${timeFilter}&include_advanced=true`,
+        {
+          headers: {
+            Authorization: `Bearer ${data.session.access_token}`,
+          },
+        }
+      );
 
       if (!res.ok) {
         throw new Error(`Errore HTTP ${res.status}: ${res.statusText}`);
       }
 
       const analyticsData = await res.json();
+
+      // 🐛 DEBUG Story 4.2.3: Log analytics data
+      console.log("[Analytics] Data received:", analyticsData);
+      console.log(
+        "[Analytics] Feedback Summary:",
+        analyticsData?.feedback_summary
+      );
+      console.log(
+        "[Analytics] Problematic Queries:",
+        analyticsData?.problematic_queries
+      );
+      console.log("[Analytics] Engagement:", analyticsData?.engagement_stats);
+
       setAnalytics(analyticsData);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Errore sconosciuto");
@@ -104,7 +181,8 @@ const AnalyticsPage: React.FC = () => {
         setLoading(false);
       }
     });
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [timeFilter]); // AC7: Refetch quando cambia time_filter
 
   // Loading state
   if (loading) {
@@ -170,13 +248,30 @@ const AnalyticsPage: React.FC = () => {
             Statistiche aggregate sistema RAG
           </p>
         </div>
-        <button
-          onClick={fetchAnalytics}
-          className="rounded-md bg-primary px-4 py-2 text-sm text-primary-foreground hover:bg-primary/90"
-          aria-label="Aggiorna dati analytics"
-        >
-          Aggiorna Dati
-        </button>
+        <div className="flex items-center gap-4">
+          {/* AC7: Time Filter Dropdown */}
+          <div className="flex items-center gap-2">
+            <label className="text-sm font-medium">Periodo:</label>
+            <select
+              value={timeFilter}
+              onChange={(e) => setTimeFilter(e.target.value)}
+              className="rounded-md border border-input bg-background px-3 py-2 text-sm"
+            >
+              <option value="day">Ultimo Giorno</option>
+              <option value="week">Ultima Settimana</option>
+              <option value="month">Ultimo Mese</option>
+              <option value="all">Tutto</option>
+            </select>
+            <span className="text-xs text-muted-foreground">UTC</span>
+          </div>
+          <button
+            onClick={fetchAnalytics}
+            className="rounded-md bg-primary px-4 py-2 text-sm text-primary-foreground hover:bg-primary/90"
+            aria-label="Aggiorna dati analytics"
+          >
+            Aggiorna Dati
+          </button>
+        </div>
       </div>
 
       {/* Overview KPIs */}
@@ -215,6 +310,43 @@ const AnalyticsPage: React.FC = () => {
               <CardDescription>Latenza Media</CardDescription>
               <CardTitle className="text-3xl">
                 {analytics.overview.avg_latency_ms}ms
+              </CardTitle>
+            </CardHeader>
+          </Card>
+        </div>
+
+        {/* AC4: Engagement Stats Cards */}
+        <h3 className="text-md mt-6 font-semibold">Engagement</h3>
+        <div className="grid gap-4 md:grid-cols-3">
+          <Card>
+            <CardHeader>
+              <CardDescription>Tempo Medio Sessione</CardDescription>
+              <CardTitle className="text-3xl">
+                {analytics.engagement_stats.avg_session_duration_minutes.toFixed(
+                  1
+                )}{" "}
+                min
+              </CardTitle>
+            </CardHeader>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardDescription>Query per Sessione</CardDescription>
+              <CardTitle className="text-3xl">
+                {analytics.engagement_stats.avg_queries_per_session.toFixed(1)}
+              </CardTitle>
+            </CardHeader>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardDescription>Tasso Conversione Feedback</CardDescription>
+              <CardTitle className="text-3xl">
+                {(
+                  analytics.engagement_stats.feedback_conversion_rate * 100
+                ).toFixed(1)}
+                %
               </CardTitle>
             </CardHeader>
           </Card>
@@ -369,6 +501,189 @@ const AnalyticsPage: React.FC = () => {
         <p className="text-sm text-muted-foreground">
           Campioni: {analytics.performance_metrics.sample_count}
         </p>
+      </section>
+
+      {/* AC1: Temporal Distribution Section */}
+      <section className="space-y-4">
+        <h2 className="text-lg font-semibold">Distribuzione Temporale</h2>
+        <Card>
+          <CardContent className="pt-6">
+            <div className="h-[300px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={analytics.temporal_distribution}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis
+                    dataKey="label"
+                    angle={-45}
+                    textAnchor="end"
+                    height={80}
+                    tick={{ fill: "#6b7280", fontSize: 12 }}
+                  />
+                  <YAxis
+                    label={{
+                      value: "Query Count",
+                      angle: -90,
+                      position: "insideLeft",
+                    }}
+                  />
+                  <Tooltip />
+                  <Bar
+                    dataKey="query_count"
+                    fill="#3b82f6"
+                    radius={[8, 8, 0, 0]}
+                  />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+            <p className="mt-4 text-sm text-muted-foreground">
+              Picco:{" "}
+              {analytics.temporal_distribution.reduce(
+                (max, item) =>
+                  item.query_count > max.query_count ? item : max,
+                analytics.temporal_distribution[0]
+              )?.label || "N/A"}
+            </p>
+          </CardContent>
+        </Card>
+      </section>
+
+      {/* AC2: Quality Metrics Section */}
+      <section className="space-y-4">
+        <h2 className="text-lg font-semibold">Qualità Risposte</h2>
+        <div className="grid gap-4 md:grid-cols-3">
+          <Card>
+            <CardHeader>
+              <CardDescription>Lunghezza Media</CardDescription>
+              <CardTitle className="text-3xl">
+                {analytics.quality_metrics.avg_response_length_chars} char
+              </CardTitle>
+            </CardHeader>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardDescription>Chunk per Risposta</CardDescription>
+              <CardTitle className="text-3xl">
+                {analytics.quality_metrics.avg_chunks_per_response.toFixed(1)}
+              </CardTitle>
+            </CardHeader>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardDescription>Chunk Range</CardDescription>
+              <CardTitle className="text-xl">
+                {analytics.quality_metrics.chunks_distribution.min} -{" "}
+                {analytics.quality_metrics.chunks_distribution.max}
+              </CardTitle>
+              <p className="text-sm text-muted-foreground">
+                Mediana: {analytics.quality_metrics.chunks_distribution.median}
+              </p>
+            </CardHeader>
+          </Card>
+        </div>
+      </section>
+
+      {/* AC3: Problematic Queries Section */}
+      <section className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-semibold">Query Problematiche</h2>
+          <p className="text-sm text-muted-foreground">
+            Totale: {analytics.problematic_queries.total_count}
+          </p>
+        </div>
+        <Card>
+          <CardContent className="p-0">
+            {analytics.problematic_queries.queries.length === 0 ? (
+              <p className="p-6 text-center text-sm text-muted-foreground">
+                Nessuna query problematica identificata
+              </p>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="border-b">
+                    <tr className="text-left text-sm">
+                      <th scope="col" className="p-4 font-medium">
+                        Query
+                      </th>
+                      <th scope="col" className="p-4 font-medium text-right">
+                        Feedback Negativi
+                      </th>
+                      <th scope="col" className="p-4 font-medium text-right">
+                        Prima Segnalazione
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {analytics.problematic_queries.queries.map((q, idx) => (
+                      <tr key={idx} className="border-b last:border-0">
+                        <td className="p-4 text-sm">{q.query_text}</td>
+                        <td className="p-4 text-right text-sm font-medium text-destructive">
+                          {q.negative_feedback_count}
+                        </td>
+                        <td className="p-4 text-right text-sm text-muted-foreground">
+                          {new Date(q.first_seen).toLocaleDateString("it-IT")}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </section>
+
+      {/* AC5: Top Chunks Section */}
+      <section className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-semibold">Chunk Più Utilizzati</h2>
+          <p className="text-sm text-muted-foreground">
+            Chunk Unici: {analytics.top_chunks.total_chunks_count}
+          </p>
+        </div>
+        <Card>
+          <CardContent className="p-0">
+            {analytics.top_chunks.top_chunks.length === 0 ? (
+              <p className="p-6 text-center text-sm text-muted-foreground">
+                Dati chunk non disponibili
+              </p>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="border-b">
+                    <tr className="text-left text-sm">
+                      <th scope="col" className="p-4 font-medium">
+                        Documento
+                      </th>
+                      <th scope="col" className="p-4 font-medium text-right">
+                        Utilizzi
+                      </th>
+                      <th scope="col" className="p-4 font-medium text-right">
+                        Similarità Media
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {analytics.top_chunks.top_chunks.map((chunk, idx) => (
+                      <tr key={idx} className="border-b last:border-0">
+                        <td className="p-4 text-xs font-mono">
+                          {chunk.document_id}
+                        </td>
+                        <td className="p-4 text-right text-sm font-medium">
+                          {chunk.retrieval_count}
+                        </td>
+                        <td className="p-4 text-right text-sm">
+                          {chunk.avg_similarity_score.toFixed(3)}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </CardContent>
+        </Card>
       </section>
     </div>
   );

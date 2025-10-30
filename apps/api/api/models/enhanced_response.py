@@ -51,8 +51,8 @@ class CitationMetadata(BaseModel):
     )
     excerpt: Optional[str] = Field(
         default=None,
-        description="Estratto testuale del chunk citato (max 240 char)",
-        max_length=240,
+        description="Estratto testuale del chunk citato (max 1000 char)",
+        max_length=1000,
     )
     content_type: Optional[Literal["text", "table", "figure"]] = Field(
         default="text",

@@ -505,7 +505,7 @@ def create_chat_message(
         if ch:
             text = (ch.content or "").strip()
             if text:
-                excerpt_value = text[:240]
+                excerpt_value = text[:1000]
             document_id_value = ch.document_id
         enriched_citations.append({
             "chunk_id": cid,
@@ -615,6 +615,14 @@ def create_feedback(
         "session_id": body.sessionId,
         "message_id": messageId,
         "vote": body.vote,
+    })
+    
+    # 🐛 DEBUG Story 4.2.3: Verifica che il feedback sia stato salvato
+    logger.info({
+        "event": "feedback_store_state",
+        "key": key,
+        "total_feedback_count": len(feedback_store),
+        "feedback_saved": key in feedback_store,
     })
     
     return FeedbackCreateResponse(ok=True)
