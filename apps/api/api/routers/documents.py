@@ -19,7 +19,8 @@ from ..schemas.knowledge_base import (
     ChunkDetail,
     DocumentChunksResponse,
 )
-from ..dependencies import _auth_bridge, TokenPayload, _is_admin, get_db_connection
+from ..dependencies import _auth_bridge, TokenPayload, _is_admin
+from ..database import get_db_connection
 
 router = APIRouter(prefix="/api/v1/admin/documents", tags=["Admin - Documents"])
 logger = logging.getLogger("api")

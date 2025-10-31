@@ -10,9 +10,7 @@ Tests complete pipeline:
 
 Verifies end-to-end RAG functionality is operational.
 """
-import asyncio
 import uuid
-from pathlib import Path
 from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
@@ -146,7 +144,7 @@ async def test_chat_endpoint_with_embeddings(api_client):
             mock_llm.return_value.invoke.return_value.content = "La radicolopatia lombare è..."
             
             # Make chat request
-            response = api_client.post(
+            api_client.post(
                 f"/api/v1/chat/sessions/{session_id}/messages",
                 json={"message": "Cos'è la radicolopatia lombare?", "match_count": 5},
                 headers={"Authorization": "Bearer test-token"}
@@ -198,12 +196,6 @@ async def test_citations_contain_chunk_metadata():
     - Sufficient for user to verify sources
     """
     # Would test actual citation structure
-    expected_citation = {
-        'chunk_id': 'uuid',
-        'document_id': 'uuid',
-        'excerpt': 'Text excerpt...',
-        'position': None  # Optional
-    }
     
     assert True  # Placeholder
 
@@ -249,7 +241,7 @@ async def test_performance_retrieval_time():
         ]
         
         from api.knowledge_base.search import perform_semantic_search
-        results = perform_semantic_search("test", match_count=5)
+        perform_semantic_search("test", match_count=5)
     
     duration_ms = (time.perf_counter() - start) * 1000
     

@@ -1,4 +1,4 @@
-﻿#!/usr/bin/env bash
+#!/usr/bin/env bash
 set -euo pipefail
 
 OUT_DIR="${1:-reports}"
@@ -43,3 +43,4 @@ PY
 detect-secrets scan --all-files > "${DETECT_OUT}"
 
 echo "[INFO] Secret scan completata. Output in ${OUT_DIR}" >&2
+

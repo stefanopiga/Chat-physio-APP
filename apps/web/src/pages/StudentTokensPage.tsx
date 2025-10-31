@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useCallback, useState, useEffect } from "react";
 import { Plus, Copy, Trash2, Check, AlertCircle } from "lucide-react";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
@@ -73,11 +73,7 @@ export default function StudentTokensPage() {
     return session?.access_token || null;
   };
 
-  useEffect(() => {
-    fetchTokens();
-  }, [showInactive]);
-
-  const fetchTokens = async () => {
+  const fetchTokens = useCallback(async () => {
     try {
       setIsLoadingList(true);
       const token = await getAuthToken();
@@ -106,7 +102,11 @@ export default function StudentTokensPage() {
     } finally {
       setIsLoadingList(false);
     }
-  };
+  }, [API_BASE_URL, showInactive]);
+
+  useEffect(() => {
+    void fetchTokens();
+  }, [fetchTokens]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -167,7 +167,7 @@ export default function StudentTokensPage() {
       await navigator.clipboard.writeText(generatedToken.token);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
-    } catch (err) {
+    } catch {
       setError("Impossibile copiare il token");
     }
   };

@@ -39,7 +39,7 @@ const ChatInput: React.FC<Props> = ({ onSubmit, loading }) => {
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault(); // ← CRITICAL: prevent default newline
-      handleSubmit(e as any);
+      void handleSubmit(e as unknown as React.FormEvent);
     }
     // Shift+Enter: default behavior (newline)
   };

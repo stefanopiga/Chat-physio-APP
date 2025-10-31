@@ -17,7 +17,6 @@ import os
 import secrets
 import pytest
 from datetime import datetime, timedelta, timezone
-from fastapi.testclient import TestClient
 from supabase import create_client
 
 

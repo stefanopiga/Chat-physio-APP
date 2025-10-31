@@ -16,7 +16,6 @@ from api.ingestion.watcher import (
     scan_once,
 )
 from api.knowledge_base.classification_cache import reset_classification_cache
-from api.ingestion.chunking.recursive import RecursiveCharacterStrategy
 
 
 def _make_settings(enable_classification: bool = True, timeout_seconds: float = 1.0):

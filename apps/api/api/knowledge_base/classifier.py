@@ -18,8 +18,6 @@ from langchain_openai import ChatOpenAI
 from ..config import Settings, get_settings
 
 from ..ingestion.models import (
-    ContentDomain,
-    DocumentStructureCategory,
     EnhancedClassificationOutput,
 )
 from .classification_cache import get_classification_cache

@@ -14,8 +14,13 @@ from typing import Dict, Any
 # Store in-memory per messaggi chat per sessione (Story 3.2)
 chat_messages_store: Dict[str, list[Dict[str, Any]]] = {}
 
-# Store in-memory per feedback dei messaggi (Story 3.4)
-feedback_store: Dict[str, Dict[str, Any]] = {}
+# DEPRECATED: feedback_store in-memory rimosso in Story 4.2.4
+# Feedback ora persistito su Supabase tabella public.feedback
+# Vedere: apps/api/api/repositories/feedback_repository.py
+# Endpoint aggiornati:
+#   - POST /api/v1/chat/messages/{messageId}/feedback (apps/api/api/routers/chat.py)
+#   - GET /api/v1/admin/analytics (apps/api/api/routers/admin.py)
+# feedback_store: Dict[str, Dict[str, Any]] = {}  # NO LONGER USED
 
 # Store in-memory per job di indicizzazione (Story 2.4)
 sync_jobs_store: Dict[str, Dict[str, Any]] = {}

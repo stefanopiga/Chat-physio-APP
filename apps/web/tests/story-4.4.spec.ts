@@ -29,20 +29,30 @@ test.describe("Story 4.4: Document Chunk Explorer", () => {
         access_token: "mock-admin-token",
       };
 
-      (window as any).__mockAuthService = {
+      interface MockAuthService {
+        getSession: () => Promise<{ data: { session: typeof mockSession }; error: null }>;
+        onAuthStateChange: (callback: (event: string, session: typeof mockSession | null) => void) => {
+          data: { subscription: { unsubscribe: () => void } };
+        };
+        isAdmin: (session: typeof mockSession | null) => boolean;
+        isStudent: () => boolean;
+        isAuthenticated: (session: typeof mockSession | null) => boolean;
+      }
+
+      (window as Record<string, MockAuthService>).__mockAuthService = {
         getSession: () =>
           Promise.resolve({ data: { session: mockSession }, error: null }),
-        onAuthStateChange: (callback: any) => {
+        onAuthStateChange: (callback) => {
           // Chiama callback immediatamente con sessione mock
           setTimeout(() => callback("SIGNED_IN", mockSession), 0);
           return {
             data: { subscription: { unsubscribe: () => {} } },
           };
         },
-        isAdmin: (session: any) =>
+        isAdmin: (session) =>
           session?.user?.app_metadata?.role === "admin",
         isStudent: () => false,
-        isAuthenticated: (session: any) => session !== null,
+        isAuthenticated: (session) => session !== null,
       };
     });
 

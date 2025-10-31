@@ -230,7 +230,7 @@ async def retry_with_backoff(func, max_retries: int = 2, initial_backoff: float 
             
             # Special handling for rate limit (429)
             if "rate_limit" in error_msg.lower() or "429" in error_msg:
-                print(f"[WARN] Rate limit detected, waiting 60s (not counted as retry)")
+                print("[WARN] Rate limit detected, waiting 60s (not counted as retry)")
                 await asyncio.sleep(60)
                 continue  # Don't count as retry
             

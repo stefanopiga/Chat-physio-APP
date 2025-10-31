@@ -200,8 +200,8 @@ def test_temporal_distribution_time_filter_day(mock_chat_messages_store):
     # Deve avere meno query totali rispetto a "all"
     result_all = aggregate_temporal_distribution(mock_chat_messages_store, "all")
     
-    total_day = sum(item.query_count for item in result_day)
-    total_all = sum(item.query_count for item in result_all)
+    sum(item.query_count for item in result_day)
+    sum(item.query_count for item in result_all)
     
     # Con mock data: tutte query sono recenti, quindi same count
     # Ma struttura deve essere identica
@@ -487,9 +487,9 @@ def test_performance_aggregation_5000_queries():
     
     temporal = aggregate_temporal_distribution(large_store, "week")
     quality = aggregate_quality_metrics(large_store)
-    problematic = aggregate_problematic_queries(large_store, feedback_store)
+    aggregate_problematic_queries(large_store, feedback_store)
     engagement = aggregate_engagement_stats(large_store, feedback_store)
-    chunks = aggregate_top_chunks(large_store)
+    aggregate_top_chunks(large_store)
     
     elapsed_ms = (time.time() - start) * 1000
     

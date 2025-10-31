@@ -7,7 +7,6 @@ Coverage:
 - get_latency_p99()
 - get_llm()
 """
-import pytest
 from unittest.mock import patch, MagicMock
 
 

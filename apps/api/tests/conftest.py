@@ -10,7 +10,6 @@ Questo file configura:
 import os
 import sys
 from pathlib import Path
-from typing import Generator
 import pytest
 from dotenv import load_dotenv
 
@@ -626,7 +625,7 @@ def student_token_in_db(supabase_test_client):
         # Cleanup user prima di fail
         try:
             supabase_test_client.table("users").delete().eq("id", test_user_id).execute()
-        except:
+        except Exception:
             pass
         raise
     
@@ -651,7 +650,7 @@ def student_token_in_db(supabase_test_client):
         if not delete_token.data and delete_token.count != 0:
             logger.warning(f"[CLEANUP] Token delete returned unexpected result: {delete_token}")
         else:
-            logger.debug(f"[CLEANUP] Student token deleted successfully")
+            logger.debug("[CLEANUP] Student token deleted successfully")
         
         # Step 3: Delete users (parent) LAST
         logger.debug(f"[CLEANUP] Deleting user {test_user_id}")
@@ -661,7 +660,7 @@ def student_token_in_db(supabase_test_client):
         if not delete_user.data and delete_user.count != 0:
             logger.warning(f"[CLEANUP] User delete returned unexpected result: {delete_user}")
         else:
-            logger.debug(f"[CLEANUP] User deleted successfully")
+            logger.debug("[CLEANUP] User deleted successfully")
         
         logger.debug(f"[CLEANUP] Fixture teardown completed for token {created_token['id']}")
         
@@ -760,7 +759,7 @@ def admin_token_in_db(supabase_test_client):
         # Cleanup e skip test se JWT secret non disponibile
         try:
             supabase_test_client.table("users").delete().eq("id", admin_user_id).execute()
-        except:
+        except Exception:
             pass
         pytest.skip("SUPABASE_JWT_SECRET not configured for integration tests")
     
@@ -777,14 +776,14 @@ def admin_token_in_db(supabase_test_client):
         }
         
         token = jwt.encode(payload, jwt_secret, algorithm="HS256")
-        logger.debug(f"[FIXTURE] Admin JWT token generated")
+        logger.debug("[FIXTURE] Admin JWT token generated")
         
     except Exception as e:
         logger.error(f"[FIXTURE] JWT generation failed: {e}", exc_info=True)
         # Cleanup user prima di fail
         try:
             supabase_test_client.table("users").delete().eq("id", admin_user_id).execute()
-        except:
+        except Exception:
             pass
         raise
     
@@ -812,9 +811,9 @@ def admin_token_in_db(supabase_test_client):
         if not delete_user.data and delete_user.count != 0:
             logger.warning(f"[CLEANUP] Admin user delete returned unexpected result: {delete_user}")
         else:
-            logger.debug(f"[CLEANUP] Admin user deleted successfully")
+            logger.debug("[CLEANUP] Admin user deleted successfully")
         
-        logger.debug(f"[CLEANUP] Admin user teardown completed")
+        logger.debug("[CLEANUP] Admin user teardown completed")
         
     except Exception as e:
         # Log but don't fail test on cleanup error (best-effort cleanup)

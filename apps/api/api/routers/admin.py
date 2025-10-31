@@ -7,6 +7,7 @@ import logging
 import time
 import jwt
 import os
+from datetime import datetime, timedelta  # Story 4.2.4
 from typing import Annotated
 from unittest.mock import MagicMock
 
@@ -25,7 +26,6 @@ from ..schemas.admin import (
 )
 from ..analytics.analytics import (
     aggregate_analytics, 
-    AnalyticsResponse,
     AdvancedAnalyticsResponse,
     aggregate_temporal_distribution,
     aggregate_quality_metrics,
@@ -34,10 +34,11 @@ from ..analytics.analytics import (
     aggregate_top_chunks
 )
 from ..knowledge_base.search import perform_semantic_search
-from ..dependencies import verify_jwt_token, _is_admin
+from ..dependencies import verify_jwt_token, _is_admin, get_supabase_client  # Story 4.2.4
 from ..config import Settings, get_settings
 from ..services.chat_service import ag_latency_samples_ms
-from ..stores import chat_messages_store, feedback_store
+from ..stores import chat_messages_store  # feedback_store deprecato Story 4.2.4
+from ..repositories.feedback_repository import FeedbackRepository  # Story 4.2.4
 from ..knowledge_base.classification_cache import get_classification_cache
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
@@ -56,11 +57,6 @@ if os.getenv("TESTING") == "true" or os.getenv("RATE_LIMITING_ENABLED") == "fals
 else:
     limiter = Limiter(key_func=get_remote_address)
     logger.info("[admin.py] Rate limiting ENABLED")
-
-# Store in-memory per analytics (Story 4.2 - tech debt accepted)
-chat_messages_store = {}
-feedback_store = {}
-ag_latency_samples_ms = []
 
 
 def _admin_rate_limit_key(request: Request, settings: Settings) -> str:
@@ -207,20 +203,21 @@ def _analytics_rate_limit_key(request: Request, settings: Settings) -> str:
 
 @router.get("/analytics")
 @limiter.limit("30/hour")
-def get_admin_analytics(
+async def get_admin_analytics(  # Story 4.2.4: Changed to async for DB access
     request: Request,
     payload: Annotated[dict, Depends(verify_jwt_token)],
     settings: Annotated[Settings, Depends(get_settings)],
+    supabase_client: Annotated[any, Depends(get_supabase_client)],  # Story 4.2.4
     time_filter: str = "week",
     include_advanced: bool = False
 ):
     """
-    Analytics Dashboard endpoint (Story 4.2 & 4.2.2).
+    Analytics Dashboard endpoint (Story 4.2, 4.2.2, migrated 4.2.4).
     
-    Aggrega dati da store in-memory:
-    - chat_messages_store: query utenti
-    - feedback_store: thumbs up/down
-    - ag_latency_samples_ms: performance metrics
+    Aggrega dati da database persistente e in-memory:
+    - chat_messages_store: query utenti (in-memory, future migration)
+    - feedback DB (Supabase): thumbs up/down (Story 4.2.4)
+    - ag_latency_samples_ms: performance metrics (in-memory)
     
     Query params:
     - time_filter: Periodo dati ("day", "week", "month", "all") - default "week"
@@ -231,8 +228,7 @@ def get_admin_analytics(
     - Rate limiting 30/hour
     - Session IDs hashati (privacy)
     
-    Note: Dati volatili (tech debt R-4.2-1 accepted per MVP)
-    Performance Constraint: Finestra temporale max 30 giorni (in-memory limitation until Story 4.2.1)
+    Story 4.2.4: Feedback migrated from in-memory to database persistence.
     """
     # Autorizzazione admin
     if not _is_admin(payload):
@@ -248,10 +244,39 @@ def get_admin_analytics(
             detail="Invalid time_filter. Allowed values: day, week, month, all"
         )
     
-    # Aggregazione dati base (Story 4.2)
+    # Story 4.2.4: Read feedback from database instead of in-memory store
+    repo = FeedbackRepository(supabase_client)
+    try:
+        feedback_list = await repo.get_feedback_by_timerange(
+            start_date=datetime.utcnow() - timedelta(days=30)  # Max 30 giorni window
+        )
+    except Exception as e:
+        logger.error({
+            "event": "analytics_feedback_fetch_failed",
+            "error": str(e)
+        }, exc_info=True)
+        # Fallback to empty feedback if DB unavailable
+        feedback_list = []
+    
+    # Convert feedback list from DB to dict format for backward compatibility
+    # with existing aggregate functions (minimize changes)
+    feedback_store_compat = {}
+    for fb in feedback_list:
+        key = f"{fb['session_id']}:{fb['message_id']}"
+        feedback_store_compat[key] = {
+            "session_id": fb["session_id"],
+            "message_id": fb["message_id"],
+            "vote": fb["vote"],
+            "comment": fb.get("comment"),
+            "created_at": fb["created_at"],
+            "user_id": fb.get("user_id"),
+            "ip": fb.get("ip_address"),  # Note: campo ip_address in DB, ip in formato legacy
+        }
+    
+    # Aggregazione dati base (Story 4.2) con feedback da DB
     base_analytics = aggregate_analytics(
         chat_messages_store=chat_messages_store,
-        feedback_store=feedback_store,
+        feedback_store=feedback_store_compat,  # Story 4.2.4: DB data
         ag_latency_samples_ms=ag_latency_samples_ms,
     )
     
@@ -263,15 +288,16 @@ def get_admin_analytics(
             "user_id": payload.get("sub"),
             "total_queries": base_analytics.overview.total_queries,
             "total_sessions": base_analytics.overview.total_sessions,
-            "include_advanced": False
+            "include_advanced": False,
+            "feedback_source": "database"  # Story 4.2.4
         })
         return base_analytics
     
     # Story 4.2.2: Metriche avanzate
     temporal_dist = aggregate_temporal_distribution(chat_messages_store, time_filter)
     quality = aggregate_quality_metrics(chat_messages_store)
-    problematic = aggregate_problematic_queries(chat_messages_store, feedback_store)
-    engagement = aggregate_engagement_stats(chat_messages_store, feedback_store)
+    problematic = aggregate_problematic_queries(chat_messages_store, feedback_store_compat)
+    engagement = aggregate_engagement_stats(chat_messages_store, feedback_store_compat)
     top_chunks = aggregate_top_chunks(chat_messages_store)
     
     # Audit log con metriche avanzate
@@ -285,7 +311,9 @@ def get_admin_analytics(
         "include_advanced": True,
         "temporal_slots": len(temporal_dist),
         "problematic_queries_count": problematic.total_count,
-        "top_chunks_count": top_chunks.total_chunks_count
+        "top_chunks_count": top_chunks.total_chunks_count,
+        "feedback_source": "database",  # Story 4.2.4
+        "feedback_count": len(feedback_list)
     })
     
     return AdvancedAnalyticsResponse(

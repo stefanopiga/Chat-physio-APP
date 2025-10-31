@@ -16,7 +16,7 @@ Target Coverage: ≥90%
 
 import pytest
 import uuid
-from unittest.mock import AsyncMock, MagicMock
+from unittest.mock import AsyncMock
 from api.ingestion.db_storage import save_document_to_db, update_document_status
 
 

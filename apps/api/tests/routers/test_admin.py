@@ -12,8 +12,7 @@ Coverage:
 import os
 import pytest
 from fastapi.testclient import TestClient
-from unittest.mock import Mock, patch, MagicMock
-from fastapi import HTTPException, status
+from unittest.mock import patch, MagicMock
 
 
 # =============================================================================
@@ -104,7 +103,6 @@ def test_rate_limiting_11th_request_returns_429(
 ):
     """TC-080: Rate limiting 10 richieste/ora per admin."""
     # Create dedicated client con store isolato per evitare pollution da test precedenti
-    from fastapi.testclient import TestClient
     from api.main import app
     from api.services.rate_limit_service import rate_limit_service
     from api import dependencies

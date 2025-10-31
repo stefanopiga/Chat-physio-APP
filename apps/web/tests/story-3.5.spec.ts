@@ -23,7 +23,6 @@ test.describe("Story 3.5 — In-App User Guide", () => {
     
     // Verifica raggiungibilità via tastiera
     await page.keyboard.press("Tab");
-    const focusedElement = await page.evaluate(() => document.activeElement?.getAttribute("aria-label"));
     
     // Focus potrebbe non essere esattamente sull'icona dopo primo Tab, verifica sia presente
     await helpButton.focus();
@@ -108,19 +107,17 @@ test.describe("Story 3.5 — In-App User Guide", () => {
     await expect(dialog).toBeVisible();
 
     // TC-014: Verifica focus su primo elemento interattivo (pulsante chiusura)
-    const closeButton = page.getByRole("button", { name: "Close" });
-    
     // Naviga con Tab all'interno del dialog
     await page.keyboard.press("Tab");
     
     // Verifica che il focus rimanga all'interno del dialog
-    const focusedElement = await page.evaluate(() => {
+    const isFocusTrapped = await page.evaluate(() => {
       const active = document.activeElement;
       const dialogElement = document.querySelector('[role="dialog"]');
-      return dialogElement?.contains(active);
+      return dialogElement?.contains(active) ?? false;
     });
     
-    expect(focusedElement).toBe(true);
+    expect(isFocusTrapped).toBe(true);
     
     // Chiudi con Esc
     await page.keyboard.press("Escape");
@@ -182,12 +179,12 @@ test.describe("Story 3.5 — In-App User Guide", () => {
     await expect(closeButton).toBeFocused();
 
     // Verifica visibilità indicatore di focus (outline/ring)
-    const hasVisibleFocus = await closeButton.evaluate((el) => {
-      const styles = window.getComputedStyle(el);
+    const hasVisibleFocus = await closeButton.evaluate((element: HTMLElement) => {
+      const styles = window.getComputedStyle(element);
       return (
         styles.outline !== "none" || 
         styles.boxShadow !== "none" ||
-        el.classList.contains("focus:ring-2")
+        element.classList.contains("focus:ring-2")
       );
     });
 

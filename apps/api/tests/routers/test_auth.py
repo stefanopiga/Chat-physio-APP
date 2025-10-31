@@ -13,9 +13,7 @@ Migration Notes (Story 5.3):
 """
 import os
 import secrets
-import pytest
 from datetime import datetime, timedelta, timezone
-from fastapi.testclient import TestClient
 
 # Note: supabase_test_client, student_token_in_db, refresh_token_in_db fixtures
 # sono definite in conftest.py e automaticamente disponibili

@@ -7,9 +7,7 @@ Tests:
 - Embedding format validation
 - Semantic search functionality after indexing
 """
-import asyncio
 import uuid
-from pathlib import Path
 from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
@@ -65,7 +63,7 @@ async def test_watcher_generates_embeddings_after_ingestion(test_document_path, 
         mock_update_emb.return_value = 5  # 5 chunks indexed
         
         # Run watcher scan
-        results = await scan_once(cfg, inventory, conn=mock_db_conn)
+        await scan_once(cfg, inventory, conn=mock_db_conn)
     
     # Assert embeddings were generated
     assert mock_update_emb.called

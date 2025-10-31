@@ -250,7 +250,7 @@ class TestEnhancedChunkRetriever:
             mock_diversify.return_value = mock_baseline_results[:3]  # Simula diversification
             
             retriever = EnhancedChunkRetriever(settings=mock_settings)
-            results = retriever.retrieve_and_rerank(
+            retriever.retrieve_and_rerank(
                 query="test query",
                 match_count=5,
                 diversify=True,

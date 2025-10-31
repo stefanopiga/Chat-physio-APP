@@ -12,9 +12,8 @@ import hashlib
 import logging
 from collections import Counter, defaultdict
 from datetime import datetime, timedelta
-from typing import Annotated
 from pydantic import BaseModel
-from fastapi import APIRouter, Depends, HTTPException, Request, status
+from fastapi import APIRouter
 
 log = logging.getLogger(__name__)
 

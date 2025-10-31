@@ -36,7 +36,7 @@ const mockSession = {
 describe("DocumentsPage", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    (authService.getSession as any).mockResolvedValue({
+    vi.mocked(authService.getSession).mockResolvedValue({
       data: { session: mockSession },
     });
   });
@@ -62,10 +62,10 @@ describe("DocumentsPage", () => {
       total_count: 2,
     };
 
-    (global.fetch as any).mockResolvedValueOnce({
+    vi.mocked(global.fetch).mockResolvedValueOnce({
       ok: true,
       json: async () => mockData,
-    });
+    } as Response);
 
     render(
       <BrowserRouter>
@@ -101,10 +101,10 @@ describe("DocumentsPage", () => {
       total_count: 1,
     };
 
-    (global.fetch as any).mockResolvedValueOnce({
+    vi.mocked(global.fetch).mockResolvedValueOnce({
       ok: true,
       json: async () => mockData,
-    });
+    } as Response);
 
     render(
       <BrowserRouter>
@@ -128,10 +128,10 @@ describe("DocumentsPage", () => {
       total_count: 0,
     };
 
-    (global.fetch as any).mockResolvedValueOnce({
+    vi.mocked(global.fetch).mockResolvedValueOnce({
       ok: true,
       json: async () => mockData,
-    });
+    } as Response);
 
     render(
       <BrowserRouter>
@@ -146,7 +146,7 @@ describe("DocumentsPage", () => {
 
   it("Test 4: Loading skeleton durante fetch", async () => {
     // Simula fetch lenta
-    (global.fetch as any).mockImplementation(
+    vi.mocked(global.fetch).mockImplementation(
       () =>
         new Promise((resolve) =>
           setTimeout(
@@ -154,7 +154,7 @@ describe("DocumentsPage", () => {
               resolve({
                 ok: true,
                 json: async () => ({ documents: [], total_count: 0 }),
-              }),
+              } as Response),
             100
           )
         )
@@ -179,10 +179,10 @@ describe("DocumentsPage", () => {
   });
 
   it("Test 5: Error state con messaggio errore", async () => {
-    (global.fetch as any).mockResolvedValueOnce({
+    vi.mocked(global.fetch).mockResolvedValueOnce({
       ok: false,
       status: 500,
-    });
+    } as Response);
 
     render(
       <BrowserRouter>
@@ -211,10 +211,10 @@ describe("DocumentsPage", () => {
       total_count: 1,
     };
 
-    (global.fetch as any).mockResolvedValueOnce({
+    vi.mocked(global.fetch).mockResolvedValueOnce({
       ok: true,
       json: async () => mockData,
-    });
+    } as Response);
 
     render(
       <BrowserRouter>
@@ -243,10 +243,10 @@ describe("DocumentsPage", () => {
       total_count: 1,
     };
 
-    (global.fetch as any).mockResolvedValueOnce({
+    vi.mocked(global.fetch).mockResolvedValueOnce({
       ok: true,
       json: async () => mockData,
-    });
+    } as Response);
 
     render(
       <BrowserRouter>
@@ -263,7 +263,7 @@ describe("DocumentsPage", () => {
   });
 
   it("Test 8: Token mancante mostra errore", async () => {
-    (authService.getSession as any).mockResolvedValue({
+    vi.mocked(authService.getSession).mockResolvedValue({
       data: { session: null },
     });
 

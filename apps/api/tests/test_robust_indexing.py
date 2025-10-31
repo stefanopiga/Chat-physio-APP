@@ -7,7 +7,7 @@ Test coverage:
 - Error handling robusto
 """
 import pytest
-from unittest.mock import Mock, patch, MagicMock
+from unittest.mock import Mock, patch
 import openai
 from tenacity import RetryError
 

@@ -1,1 +1,1 @@
-from .answer_with_citations import AnswerWithCitations
+from .answer_with_citations import AnswerWithCitations as AnswerWithCitations

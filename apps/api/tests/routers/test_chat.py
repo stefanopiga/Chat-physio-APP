@@ -11,12 +11,10 @@ Coverage:
 """
 import sys
 import types
-import time
 import pytest
 from fastapi.testclient import TestClient
 from fastapi import HTTPException, FastAPI
 from api.services.rate_limit_service import rate_limit_service
-from unittest.mock import patch, MagicMock
 
 
 # =============================================================================

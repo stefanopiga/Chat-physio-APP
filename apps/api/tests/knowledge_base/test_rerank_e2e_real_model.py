@@ -139,7 +139,7 @@ class TestEnhancedRetrievalE2EReal:
             _ = retriever.reranker
             
             start_time = time.time()
-            results = retriever.retrieve_and_rerank(
+            retriever.retrieve_and_rerank(
                 query="test query",
                 match_count=10,
                 match_threshold=0.5,

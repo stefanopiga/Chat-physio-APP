@@ -14,7 +14,7 @@ import time
 import json
 import hashlib
 import logging
-from typing import Annotated, Dict, Any
+from typing import Annotated
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -30,7 +30,8 @@ from ..schemas.knowledge_base import (
     StartSyncJobResponse,
     SyncJobStatusResponse,
 )
-from ..dependencies import _auth_bridge, TokenPayload, _is_admin, get_db_connection
+from ..dependencies import _auth_bridge, TokenPayload, _is_admin
+from ..database import get_db_connection
 from ..knowledge_base.search import perform_semantic_search
 from ..knowledge_base.indexer import index_chunks
 from ..ingestion.models import ClassificazioneOutput, DocumentStructureCategory

@@ -13,10 +13,8 @@ from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 import jwt
 from jwt import InvalidTokenError
-import asyncpg
 
 from .config import Settings, get_settings
-from .database import get_db_connection
 
 # Type aliases
 TokenPayload = dict
@@ -117,8 +115,12 @@ def _get_supabase_client(
     Returns:
         Supabase client instance
     """
-    from supabase import create_client, Client
+    from supabase import create_client
     return create_client(settings.supabase_url, settings.supabase_service_role_key)
+
+
+# Public alias for repository layer (Story 4.2.4)
+get_supabase_client = _get_supabase_client
 
 
 def _verify_jwt_token_runtime(

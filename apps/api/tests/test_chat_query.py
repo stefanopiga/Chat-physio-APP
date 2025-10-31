@@ -7,7 +7,6 @@ Migration Notes (Story 5.3):
 - Uses client_no_auth for 401 tests
 - Monkeypatch compatible with pytest fixtures
 """
-from fastapi import HTTPException
 
 
 def test_chat_query_endpoint_with_mocks(client_student, monkeypatch):

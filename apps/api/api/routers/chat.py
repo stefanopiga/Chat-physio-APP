@@ -10,7 +10,7 @@ Stories: 3.1, 3.2, 3.4
 """
 import time
 import logging
-from typing import Annotated, Optional, Dict, Any
+from typing import Annotated, Optional, Dict
 from uuid import uuid4
 from datetime import datetime, timezone
 
@@ -35,7 +35,7 @@ from ..config import Settings, get_settings
 from ..services.chat_service import record_ag_latency_ms, get_llm
 from ..services.rate_limit_service import rate_limit_service
 from ..services.conversation_service import get_conversation_manager  # Story 7.1
-from ..dependencies import _auth_bridge, TokenPayload
+from ..dependencies import _auth_bridge, TokenPayload, get_supabase_client  # Story 4.2.4
 from ..knowledge_base.search import perform_semantic_search
 from ..knowledge_base.enhanced_retrieval import get_enhanced_retriever  # Story 7.2
 from ..knowledge_base.dynamic_retrieval import get_dynamic_strategy  # Story 7.2
@@ -45,7 +45,8 @@ from ..prompts.academic_medical import (  # Story 7.1
     BASELINE_PROMPT,
     ACADEMIC_MEDICAL_SYSTEM_PROMPT,
 )
-from ..stores import chat_messages_store, feedback_store
+from ..stores import chat_messages_store  # feedback_store deprecato Story 4.2.4
+from ..repositories.feedback_repository import FeedbackRepository  # Story 4.2.4
 
 router = APIRouter(prefix="/api/v1/chat", tags=["Chat"])
 logger = logging.getLogger("api")
@@ -551,27 +552,30 @@ def create_chat_message(
 
 
 @router.post("/messages/{messageId}/feedback", response_model=FeedbackCreateResponse)
-def create_feedback(
+async def create_feedback(
     messageId: str,
     body: FeedbackCreateRequest,
     request: Request,
     payload: Annotated[TokenPayload, Depends(_auth_bridge)],
+    supabase_client: Annotated[any, Depends(get_supabase_client)],  # Story 4.2.4
 ):
     """
-    User feedback endpoint (Story 3.4).
+    User feedback endpoint (Story 3.4, migrated 4.2.4).
     
-    Registra feedback thumbs up/down per messaggi generati.
+    Registra feedback thumbs up/down per messaggi generati con persistenza database.
     
     Features:
     - Validazione best-effort esistenza messaggio
     - Non blocca UX se messaggio non trovato
-    - Persistenza in-memory (tech debt MVP)
+    - Persistenza Supabase PostgreSQL (Story 4.2.4)
+    - UPSERT logic: secondo feedback aggiorna il precedente
     
     Args:
         messageId: Message identifier
         body: Feedback request con sessionId e vote
         request: FastAPI Request
         payload: JWT payload verificato
+        supabase_client: Supabase client (injected)
         
     Returns:
         FeedbackCreateResponse con conferma
@@ -579,6 +583,8 @@ def create_feedback(
     Security:
         - JWT authentication required
         - Rate limiting: 60/minute (gestito da SlowAPI su main.app)
+        
+    Story 4.2.4: Migrated from in-memory feedback_store to database persistence.
     """
     if not messageId or not messageId.strip():
         raise HTTPException(status_code=400, detail="messageId mancante")
@@ -599,32 +605,37 @@ def create_feedback(
             "message_id": messageId,
         })
     
-    key = f"{body.sessionId}:{messageId}"
-    feedback_store[key] = {
-        "session_id": body.sessionId,
-        "message_id": messageId,
-        "vote": body.vote,
-        "comment": body.comment,  # Story 5.5 Task 1: Salva commento opzionale
-        "created_at": datetime.now(timezone.utc).isoformat(),
-        "ip": request.client.host if request.client else None,
-        "user_id": payload.get("sub") if isinstance(payload, dict) else None,
-    }
+    # Story 4.2.4: Persist feedback to database via repository
+    repo = FeedbackRepository(supabase_client)
     
-    logger.info({
-        "event": "feedback_recorded",
-        "session_id": body.sessionId,
-        "message_id": messageId,
-        "vote": body.vote,
-    })
+    try:
+        await repo.create_feedback(
+            session_id=body.sessionId,
+            message_id=messageId,
+            vote=body.vote,
+            comment=body.comment,  # Story 5.5 Task 1: Commento opzionale
+            user_id=payload.get("sub") if isinstance(payload, dict) else None,
+            ip_address=request.client.host if request.client else None
+        )
+    except ValueError as e:
+        # Validation error (invalid vote)
+        logger.warning({
+            "event": "feedback_validation_failed",
+            "session_id": body.sessionId,
+            "message_id": messageId,
+            "error": str(e)
+        })
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        logger.error({
+            "event": "feedback_save_failed",
+            "session_id": body.sessionId,
+            "message_id": messageId,
+            "error": str(e)
+        }, exc_info=True)
+        raise HTTPException(status_code=500, detail="Feedback save failed")
     
-    # 🐛 DEBUG Story 4.2.3: Verifica che il feedback sia stato salvato
-    logger.info({
-        "event": "feedback_store_state",
-        "key": key,
-        "total_feedback_count": len(feedback_store),
-        "feedback_saved": key in feedback_store,
-    })
-    
+    # Success logging handled by repository
     return FeedbackCreateResponse(ok=True)
 
 

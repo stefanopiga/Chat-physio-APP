@@ -6,7 +6,6 @@ invece di creare nuovi chunk (diverso da index_chunks che usa add_texts).
 """
 import logging
 import time
-from typing import List, Dict, Any
 import uuid
 import asyncpg
 

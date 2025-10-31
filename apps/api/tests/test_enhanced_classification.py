@@ -107,10 +107,9 @@ class TestClassifyContentEnhanced:
         )
         mock_llm.return_value = Mock()
         
-        with patch("api.knowledge_base.classifier.PromptTemplate") as mock_prompt:
+        with patch("api.knowledge_base.classifier.PromptTemplate"):
             with patch("api.knowledge_base.classifier.PydanticOutputParser"):
                 # Simulate chain execution
-                text = "Caso clinico: paziente con lombalgia acuta, trattamento manuale L4-L5"
                 
                 # Test richiede mock completo chain
                 # Placeholder per MVP - integration test userà LLM reale

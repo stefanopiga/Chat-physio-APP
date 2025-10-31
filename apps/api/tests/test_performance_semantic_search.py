@@ -1,4 +1,3 @@
-import statistics
 import time
 import pytest
 from fastapi.testclient import TestClient
@@ -10,7 +9,6 @@ client = TestClient(app)
 @pytest.mark.skip(reason="Story 5.5: Performance test skipped - requires embedding caching and HNSW index (out of scope)")
 def test_semantic_search_p95_under_1000ms(monkeypatch):  # Story 5.5 Task 4: Threshold aggiornato a 1000ms (realistico con embedding + vector search)
     # Mock perform_semantic_search to avoid external calls and simulate latency under threshold
-    from api.knowledge_base.search import perform_semantic_search as real_search  # Story 5.4 Task 4.3
 
     def fake_search(query: str, match_count: int = 8):
         # simulate small processing time

@@ -1,6 +1,5 @@
 import logging
 
-import pytest
 
 from api.config import Settings
 from api.knowledge_base import classifier

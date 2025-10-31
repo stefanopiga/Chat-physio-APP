@@ -21,8 +21,7 @@ Migration Notes (Story 5.3):
 import os
 import time
 import pytest
-from api.stores import chat_messages_store, feedback_store
-from api.services.chat_service import ag_latency_samples_ms
+from api.stores import chat_messages_store
 from api.analytics.analytics import aggregate_analytics
 
 
@@ -236,7 +235,6 @@ def test_session_id_anonymization_no_exposure():
 )
 def test_rate_limiting_enforcement(client_admin):
     """BT-021: Rate limiting 30 richieste/ora per endpoint analytics."""
-    from slowapi.errors import RateLimitExceeded
     
     # Setup dati minimi
     chat_messages_store["rl_test"] = [

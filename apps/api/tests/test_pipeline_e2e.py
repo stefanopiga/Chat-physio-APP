@@ -15,7 +15,6 @@ Note: Tests use fixtures from conftest.py che carica .env.test.local
 """
 import os
 import pytest
-from fastapi.testclient import TestClient
 
 RUN_PIPELINE_TESTS = os.getenv("ENABLE_PIPELINE_TESTS", "false").lower() in {"1", "true", "yes"}
 
@@ -128,7 +127,7 @@ class TestPipelineE2E:
         print(f"[{time.time() - start:.1f}s] Search response received")
         # Verify search returns results
         assert search_response.status_code == 200
-        search_data = search_response.json()
+        search_response.json()
         
         # Note: Response structure depends on chat endpoint implementation
         # Adjust assertions based on actual response format

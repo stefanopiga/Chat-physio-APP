@@ -2,15 +2,15 @@
 import os
 from pathlib import Path
 
+from api.ingestion.config import IngestionConfig
+from api.ingestion.watcher import scan_once, get_watcher_metrics_snapshot
+from api.config import get_settings
+
 # Ensure we're in correct directory
 os.chdir(Path(__file__).parent)
 print(f"Working directory: {os.getcwd()}")
 print(f".env exists: {Path('.env').exists()}")
 print(f".env (hidden): {Path('.env').exists() or Path('.env').is_file()}")
-
-from api.ingestion.config import IngestionConfig
-from api.ingestion.watcher import scan_once, get_watcher_metrics_snapshot
-from api.config import get_settings
 
 print("\n[+] Loading settings...")
 settings = get_settings()

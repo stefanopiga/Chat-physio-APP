@@ -7,7 +7,6 @@ Tests:
 - OpenAI retry logic
 - Progress logging
 """
-import asyncio
 from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 import uuid

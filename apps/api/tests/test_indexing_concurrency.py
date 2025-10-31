@@ -9,8 +9,7 @@ CRITICAL: These tests verify no duplicate chunks or race conditions.
 """
 import asyncio
 import uuid
-from concurrent.futures import ThreadPoolExecutor
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock
 import pytest
 
 pytestmark = pytest.mark.asyncio

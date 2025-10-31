@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import {
   Card,
@@ -54,13 +54,7 @@ export default function DocumentChunksPage() {
   const [strategyFilter, setStrategyFilter] = useState<string>("all");
   const [sortBy, setSortBy] = useState<string>("chunk_index");
 
-  useEffect(() => {
-    if (documentId) {
-      fetchChunks();
-    }
-  }, [documentId, strategyFilter, sortBy]);
-
-  const fetchChunks = async () => {
+  const fetchChunks = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -99,7 +93,13 @@ export default function DocumentChunksPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [documentId, strategyFilter, sortBy]);
+
+  useEffect(() => {
+    if (documentId) {
+      void fetchChunks();
+    }
+  }, [documentId, fetchChunks]);
 
   const handleStrategyFilter = (value: string) => {
     setStrategyFilter(value);

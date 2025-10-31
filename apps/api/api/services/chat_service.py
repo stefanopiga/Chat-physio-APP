@@ -4,7 +4,6 @@ Chat service - Business logic per chat RAG orchestration.
 Story: 3.1, 3.2, 3.4
 """
 import logging
-import time
 from typing import Optional
 
 from langchain_openai import ChatOpenAI

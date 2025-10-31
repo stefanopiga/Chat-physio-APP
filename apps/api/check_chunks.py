@@ -14,7 +14,7 @@ async def check_chunks():
         print("[!] DATABASE_URL not found in environment")
         return
     
-    print(f"[+] Connecting to database...")
+    print("[+] Connecting to database...")
     print(f"    DSN: {dsn[:50]}...")
     
     try:
@@ -39,7 +39,7 @@ async def check_chunks():
                 "SELECT id, document_id, chunk_index, LENGTH(content) as len "
                 "FROM document_chunks ORDER BY created_at DESC LIMIT 5;"
             )
-            print(f"\n[+] Recent chunks:")
+            print("\n[+] Recent chunks:")
             for chunk in recent_chunks:
                 print(f"    - Chunk {chunk['chunk_index']} (doc {chunk['document_id'][:8]}...) - {chunk['len']} chars")
         else:

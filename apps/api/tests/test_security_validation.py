@@ -6,8 +6,6 @@ Test coverage:
 """
 import pytest
 from pathlib import Path
-from unittest.mock import Mock, patch
-from fastapi import HTTPException
 
 from api.knowledge_base.extractors import DocumentExtractor, detect_file_type, FileType
 

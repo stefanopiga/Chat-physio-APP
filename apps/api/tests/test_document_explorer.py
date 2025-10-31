@@ -16,7 +16,7 @@ Migration Notes (Story 5.3):
 """
 
 import pytest
-from unittest.mock import AsyncMock, patch
+from unittest.mock import AsyncMock
 from datetime import datetime, timezone
 from uuid import uuid4
 

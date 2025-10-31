@@ -19,14 +19,10 @@ Fonte: docs/architecture/addendum-testing-backend-4.1.md
 
 import os
 import pytest
-from fastapi.testclient import TestClient
-from unittest.mock import Mock, patch, MagicMock
+from unittest.mock import patch, MagicMock
 from fastapi import HTTPException, status
 
 # Import app e dependencies refactorizzati (Story 5.2)
-from api.main import app
-from api.dependencies import verify_jwt_token, _is_admin
-from api.services.rate_limit_service import rate_limit_service
 
 
 # ========== Mock Helpers ==========

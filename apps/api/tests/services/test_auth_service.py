@@ -7,10 +7,8 @@ Coverage:
 - generate_access_code()
 - generate_temp_jwt()
 """
-import pytest
-import secrets
 import string
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timezone
 
 
 def test_generate_student_token_uniqueness():

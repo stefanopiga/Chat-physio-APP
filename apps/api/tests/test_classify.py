@@ -5,7 +5,6 @@ Migration Notes (Story 5.3):
 - Removed manual TestClient(app)
 - Uses monkeypatch for mocking (compatible with pytest fixtures)
 """
-from api.routers.knowledge_base import _build_classification_chain
 from api.ingestion.models import ClassificazioneOutput, DocumentStructureCategory
 
 

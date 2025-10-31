@@ -9,7 +9,6 @@ Architecture:
 - Schema layer per Pydantic models
 - Dependency injection pattern
 """
-import os
 import logging
 from dotenv import load_dotenv
 
