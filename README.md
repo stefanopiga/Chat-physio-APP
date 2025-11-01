@@ -238,12 +238,32 @@ APPLICAZIONE/
 
 ## Documentazione
 
+### Documentazione Tecnica Completa
+
 La documentazione completa è disponibile nella cartella `docs/`:
+- **[Documentation Hub](docs/README.md)** - Indice centrale con CI/CD, Testing Strategy, Quality Gates
 - **Architecture & Design**: `docs/architecture/`
 - **API Specifications**: `docs/architecture/sezione-5-specifica-api-sintesi.md`
 - **Testing Strategy**: `docs/architecture/sezione-11-strategia-di-testing.md`
 - **Deployment Guide**: `docs/architecture/sezione-9-architettura-di-deployment.md`
 - **Unified Project Structure**: `docs/architecture/sezione-7-struttura-unificata-del-progetto.md`
+
+### Documentazione per Componente
+
+Ogni componente principale ha una README dedicata con setup e specifiche:
+
+| Componente | README | Contenuto |
+|------------|--------|-----------|
+| **Backend API** | [`apps/api/README.md`](apps/api/README.md) | FastAPI setup, endpoints, testing, deployment |
+| **Frontend Web** | [`apps/web/README.md`](apps/web/README.md) | React setup, Docker deployment, CI/CD, environment variables |
+| **Database** | [`supabase/README.md`](supabase/README.md) | Schema PostgreSQL, migrations, PGVector, HNSW tuning, security |
+| **Scripts** | [`scripts/README.md`](scripts/README.md) | Ingestion pipeline, validation tools, operational scripts |
+
+**Quando consultare:**
+- Setup componente specifico → README componente
+- Deployment Docker → `apps/api/README.md` o `apps/web/README.md` (sezione Docker)
+- Database schema/migrations → `supabase/README.md`
+- CI/CD e testing → `docs/README.md` (sezione CI/CD)
 
 ## Variabili d'Ambiente Richieste
 

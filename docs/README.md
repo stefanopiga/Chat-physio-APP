@@ -48,6 +48,154 @@ docs/
 
 ---
 
+## 🔄 CI/CD Pipeline
+
+**Workflow automatizzati** per quality assurance e security.
+
+### Pipeline Overview
+
+**File configurazione**: [`.github/workflows/ci.yml`](../.github/workflows/ci.yml)
+
+**Trigger conditions:**
+- Push su branch `main` o `develop`
+- Pull Request verso `main` o `develop`
+
+### Job: Linting
+
+**Frontend Linting:**
+- Tool: ESLint
+- Package Manager: PNPM 8.12.0
+- Node version: da file `.nvmrc`
+- Command: `pnpm --prefix apps/web lint`
+
+**Backend Linting:**
+- Tool: Ruff (Python linter)
+- Package Manager: Poetry 1.7.1
+- Python version: 3.11
+- Command: `poetry run ruff check` (in `apps/api/`)
+
+### Job: Secret Scans
+
+**Security scanning** per prevenire leak di credenziali:
+
+**Tools utilizzati:**
+- **detect-secrets** (Yelp) - Pattern-based secret detection
+- **trufflehog v3** (Truffle Security) - Entropy-based secret detection
+
+**Artifacts generati** (disponibili in GitHub Actions):
+- `secret-scan-reports/detect-secrets-raw-*.json` - Raw output detect-secrets
+- `secret-scan-reports/secrets-scan-*.txt` - Consolidated scan results
+- `secret-scan-reports/ci-secrets-scan-*.log` - Execution log
+
+**Execution script**: `scripts/security/run_secret_scans.sh`
+
+### Esecuzione Locale
+
+```powershell
+# Frontend linting
+pnpm --prefix apps/web lint
+
+# Backend linting
+cd apps/api
+poetry run ruff check
+
+# Secret scans (richiede detect-secrets + trufflehog installati)
+bash scripts/security/run_secret_scans.sh reports $(Get-Date -Format "yyyyMMdd")
+```
+
+---
+
+## 🧪 Testing Strategy
+
+### Overview Strategia
+
+**Documento completo**: [`architecture/sezione-11-strategia-di-testing.md`](architecture/sezione-11-strategia-di-testing.md)
+
+### Test Locations
+
+| Tipo Test | Location Frontend | Location Backend |
+|-----------|-------------------|------------------|
+| **Unit Tests** | `apps/web/src/**/__tests__/*.test.tsx` | `apps/api/tests/unit/` |
+| **Integration Tests** | `apps/web/tests/*.spec.ts` (Playwright) | `apps/api/tests/integration/` |
+| **E2E Tests** | `apps/web/tests/*.spec.ts` (Playwright) | N/A |
+
+### Quick Commands
+
+```powershell
+# Frontend unit tests (Vitest)
+pnpm --prefix apps/web test
+pnpm --prefix apps/web test:coverage
+
+# Frontend E2E tests (Playwright)
+pnpm --prefix apps/web test:e2e
+
+# Backend tests (Pytest)
+cd apps/api
+poetry run pytest
+poetry run pytest --cov=api --cov-report=html
+```
+
+### Coverage Requirements
+
+- **Backend**: Target 80%+ line coverage (verificare in `apps/api/htmlcov/`)
+- **Frontend**: Target 70%+ line coverage (verificare in `apps/web/coverage/`)
+
+**Nota**: Coverage artifacts (`coverage/`, `htmlcov/`, `playwright-report/`, `test-results/`) sono esclusi da Git (vedi `.gitignore`).
+
+---
+
+## ✅ Quality Assurance
+
+### Quality Gates
+
+**Location**: [`qa/gates/`](qa/gates/)
+
+Ogni user story ha un quality gate file (`{epic}.{story}-{slug}.yml`) con decisione PASS/CONCERNS/FAIL/WAIVED.
+
+**Gate Statuses:**
+
+| Status | Significato | Azione |
+|--------|-------------|--------|
+| **PASS** | Quality gate superato, pronto per production | Deploy OK |
+| **CONCERNS** | Issue non bloccanti identificati | Review consigliata, deploy OK con awareness |
+| **FAIL** | Issue bloccanti presenti | **Richiede fix prima di deploy** |
+| **WAIVED** | Issue noti ma accettati con waiver esplicito | Deploy OK con waiver approvato |
+
+### QA Assessments
+
+**Location**: [`qa/assessments/`](qa/assessments/)
+
+**Tipi di assessment generati:**
+
+1. **Risk Profiles** (`{epic}.{story}-risk-{YYYYMMDD}.md`)
+   - Analisi rischi implementazione
+   - Probability × Impact scoring
+   - Mitigation strategies
+
+2. **NFR Assessments** (`{epic}.{story}-nfr-{YYYYMMDD}.md`)
+   - Non-Functional Requirements validation
+   - Security, Performance, Reliability, Maintainability
+   - ISO 25010 based
+
+3. **Trace Matrices** (`{epic}.{story}-trace-{YYYYMMDD}.md`)
+   - Requirements traceability
+   - Test coverage mapping
+   - AC → Test mapping con Given-When-Then
+
+4. **Test Design** (`{epic}.{story}-test-design-{YYYYMMDD}.md`)
+   - Test scenarios per AC
+   - Test level recommendations (unit/integration/e2e)
+   - Priority assignment (P0/P1/P2/P3)
+
+### Quality Score Calculation
+
+```text
+quality_score = 100 - (20 × FAIL count) - (10 × CONCERNS count)
+Bounded: [0, 100]
+```
+
+---
+
 ## 🎯 Quick Start per Ruolo
 
 ### 👨‍💻 Developer
@@ -56,7 +204,11 @@ docs/
 1. [Tech Stack](architecture/sezione-3-tech-stack.md) → capire tecnologie usate
 2. [Unified Project Structure](architecture/sezione-7-struttura-unificata-del-progetto.md) → organizzazione codebase
 3. [Coding Standards](architecture/sezione-12-standard-di-codifica.md) → standard backend/frontend
-4. `ENV_TEMPLATE.txt` → configurazione locale
+4. **Setup componenti:**
+   - Frontend: [`../apps/web/README.md`](../apps/web/README.md) → React, Docker, CI/CD, env vars
+   - Backend: [`../apps/api/README.md`](../apps/api/README.md) → FastAPI, endpoints, testing
+   - Database: [`../supabase/README.md`](../supabase/README.md) → Schema, migrations, PGVector
+5. `ENV_TEMPLATE.txt` → configurazione locale
 
 **Implementazione feature:**
 1. Leggere story in `stories/` → requisiti e acceptance criteria
