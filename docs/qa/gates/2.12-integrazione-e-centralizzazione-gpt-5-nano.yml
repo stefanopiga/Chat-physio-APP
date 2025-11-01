@@ -1,0 +1,40 @@
+schema: 1
+story: "2.12"
+story_title: "Integrazione e Centralizzazione gpt-5-nano"
+gate: "CONCERNS"
+status_reason: "P0 verdi: configurazione LLM centralizzata funziona con DI e override ENV; restano monitoraggi NFR e osservabilità costi."
+reviewer: "Quinn (Test Architect)"
+updated: "2025-10-17T01:45:00Z"
+
+waiver: { active: false }
+
+top_issues:
+  - id: "NFR-OBS-001"
+    severity: medium
+    finding: "Metrica/monitoring costi modello non ancora tracciati"
+    suggested_action: "Aggiungere dashboard costi/token per chat/classifier"
+  - id: "REL-INIT-001"
+    severity: low
+    finding: "Assenza health-check specifico per inizializzazione LLM"
+    suggested_action: "Aggiungere check e log strutturati per init ChatOpenAI"
+
+risk_summary:
+  totals: { critical: 0, high: 0, medium: 1, low: 1 }
+  recommendations:
+    must_fix: []
+    monitor:
+      - "Osservare tasso errori di init ChatOpenAI/classifier in ambienti stag/prod"
+      - "Monitorare impatto costi post-rilascio e soglie alert"
+
+examples:
+  with_issues: |
+    top_issues:
+      - id: "TEST-001"
+        severity: medium
+        finding: "Mancano alcuni test E2E non critici"
+        suggested_action: "Pianificare E2E smoke post-merge"
+  when_waived: |
+    waiver:
+      active: true
+      reason: "Accettazione rischio per MVP"
+      approved_by: "Product Owner"

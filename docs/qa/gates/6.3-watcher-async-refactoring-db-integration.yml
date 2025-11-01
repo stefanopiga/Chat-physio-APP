@@ -1,0 +1,55 @@
+schema: 1
+story: "6.3"
+story_title: "Watcher Async Refactoring & DB-First Integration"
+gate: "CONCERNS"
+status_reason: "High risks (score 6) exist: transactional atomicity, pool hygiene, concurrency overlap; mitigations planned but not yet verified."
+reviewer: "Quinn (Test Architect)"
+updated: "2025-10-20T05:04:47Z"
+waiver: { active: false }
+
+top_issues:
+  - id: "DATA-002"
+    severity: high
+    finding: "Document + chunks + status not explicitly wrapped in a single transaction"
+    suggested_action: "Use async transaction across all DB steps; add idempotency via unique hash"
+  - id: "TECH-002"
+    severity: high
+    finding: "Potential connection leaks / incorrect pool lifecycle management"
+    suggested_action: "Centralize pool init/close; acquire via context manager only; add leak detection"
+  - id: "TECH-003"
+    severity: medium
+    finding: "Overlap of watcher runs could race and duplicate writes"
+    suggested_action: "Introduce dedupe/locking by file hash; enforce unique constraints"
+  - id: "OPS-002"
+    severity: medium
+    finding: "Observability gaps for async path (metrics/log fields not standardized)"
+    suggested_action: "Add structured logs + metrics (docs_processed, chunks_sec, error_rate, pool_acquire_ms)"
+
+risk_summary:
+  totals:
+    critical: 0
+    high: 4
+    medium: 4
+    low: 1
+  highest:
+    id: DATA-002
+    score: 6
+    title: "Orphan/partial writes without transaction across doc + chunks"
+  recommendations:
+    must_fix:
+      - "Wrap document+chunks+status in single DB transaction"
+      - "Ensure idempotency via unique hash constraints"
+      - "Fix connection lifecycle; prevent leaks"
+    monitor:
+      - "Observe event loop lag and pool metrics post-deploy"
+      - "Benchmark batched vs per-chunk inserts in CI"
+
+evidence:
+  risk_profile: "docs/qa/assessments/6.3.watcher-async-refactoring-db-integration-risk-20251020.md"
+  test_design:
+    scenarios_total: 24
+    by_level: { unit: 6, integration: 14, e2e: 4 }
+    by_priority: { p0: 9, p1: 9, p2: 6 }
+    coverage_gaps: []
+  validation_report: "docs/qa/assessments/6.3-validate-20251020.md"
+  notes: "Gate auto-set to CONCERNS due to presence of High risks (score 6). Upon implementing mitigations and passing P0 scenarios, gate can move to PASS."

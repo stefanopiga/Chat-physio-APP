@@ -1,0 +1,10 @@
+gate: PASS
+story: docs/stories/3.1.semantic-search-endpoint.md
+rationale:
+  - Tutti gli AC tracciati a implementazione e test mirati (vedi Trace nella story)
+  - Endpoint protetto (JWT) e rate limited (60/min) come da specifica
+  - NFR: evidenza p95 non disponibile; non bloccante per lo scope della story
+  - Test mirati eseguiti (1 passed), suite completa da rieseguire in ambiente Poetry
+notes:
+  - Verificare p95 < 500ms in ambiente di staging con dataset realistico
+  - Integrare test di errore (401, 429) nella suite

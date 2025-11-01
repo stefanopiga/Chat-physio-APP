@@ -1,0 +1,62 @@
+schema: 1
+story: "2.11"
+story_title: "Attivazione e Stabilizzazione della Chat RAG End-to-End"
+gate: "CONCERNS"
+status_reason: "NFR security/performance con lacune (MFA/leaked-password, SLO/Load); trace con gap su AC3/AC5"
+reviewer: "Quinn (Test Architect)"
+updated: "2025-10-17T15:06:37Z"
+waiver: { active: false }
+
+top_issues:
+  - id: "SEC-MFA-001"
+    severity: medium
+    finding: "MFA e leaked-password protection non completati"
+    suggested_action: "Chiudere items Story 2.7 e documentare mitigazioni"
+  - id: "PERF-SLO-001"
+    severity: medium
+    finding: "SLO chat non definiti e nessun load E2E"
+    suggested_action: "Definire p95/p99 e aggiungere test di carico su flusso chat"
+  - id: "TEST-CHUNK-001"
+    severity: medium
+    finding: "Manca test che verifichi applicazione strategia di chunking"
+    suggested_action: "Aggiungere test integrazione ingestion con assert su metadati"
+
+nfr_validation:
+  _assessed: [security, performance, reliability, maintainability]
+  security:
+    status: CONCERNS
+    notes: "Auth+rate limiting presenti; MFA/leaked-password hardening pendenti; verificare secrets scanning"
+  performance:
+    status: CONCERNS
+    notes: "Mancano SLO chat; definire p95/p99; eseguire load test E2E"
+  reliability:
+    status: PASS
+    notes: "Fix 400, test pass, ID normalizzati; aggiungere retry/circuit-breaker docs"
+  maintainability:
+    status: CONCERNS
+    notes: "Finalizzare chunking+docs; coverage target; tooling coerente"
+trace:
+  totals:
+    requirements: 5
+    full: 3
+    partial: 2
+    none: 0
+  planning_ref: 'docs/qa/assessments/2.11-test-design-20251017.md'
+  uncovered:
+    - ac: 'AC3'
+      reason: 'Nessun test per applicazione strategia chunking'
+    - ac: 'AC5'
+      reason: 'Manca E2E contro backend reale'
+  notes: 'See docs/qa/assessments/2.11-trace-20251017.md'
+
+recommendations:
+  immediate:
+    - action: "Abilitare MFA/TOTP e leaked-password protection o documentare waiver temporaneo"
+      refs: ["docs/stories/2.7.database-hardening-and-performance.md:1"]
+    - action: "Definire SLO p95/p99 per chat e integrare scripts/perf/run_p95.ps1 nella pipeline"
+      refs: ["scripts/perf/run_p95.ps1:1", "apps/api/tests/test_chat_nfr.py:2"]
+    - action: "Aggiungere test ingestion per strategia chunking"
+      refs: ["docs/architecture/addendum-langchain-loaders-splitters.md:1"]
+  future:
+    - action: "Migrare estensione vector in schema dedicato"
+      refs: ["docs/stories/2.7.database-hardening-and-performance.md:1"]

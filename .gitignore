@@ -20,7 +20,7 @@ ARCO.md
 .bmad-core/
 .cursor/
 /bmad-method
-/docs
+#/docs
 /filesMD
 
 #conoscenza del porgetto per 'embedding' 

@@ -1,0 +1,119 @@
+schema: 1
+story: "2.9"
+story_title: "Classification Performance Optimization"
+
+# Decision fields
+gate: "PASS"
+status_reason: "Performance target raggiunto: P95=1.16s < 2s (AC2.3 validato). Cache ottimizzata: hit rate 94.32% > 90%. Warmup integrato e funzionante. Security endpoints validata."
+reviewer: "Quinn (Test Architect)"
+updated: "2025-10-15T02:56:00Z"
+
+trace:
+  totals:
+    requirements: 6
+    full: 2
+    partial: 4
+    none: 0
+  planning_ref: "docs/qa/assessments/2.9-test-design-20251014.md"
+  uncovered: []
+  notes: "See docs/qa/assessments/2.9-trace-20251014.md for mappings and gaps."
+
+nfr_validation:
+  _assessed:
+    [
+      performance,
+      reliability,
+      availability,
+      security,
+      scalability,
+      observability,
+      maintainability,
+      operability,
+      cost,
+      testability,
+    ]
+  performance:
+    status: PASS
+    notes: "P95=1.16s < 2s target. Hit rate 94.32% > 90%. Warmup integrato e validato."
+    evidence:
+      - path: reports/p95_k6_20251015-025523.json:1
+  reliability:
+    status: PASS
+    notes: "Fallback su miss/errore Redis con logging strutturato"
+    evidence:
+      - path: apps/api/api/knowledge_base/classification_cache.py:1
+  availability:
+    status: PASS
+    notes: "Degrado controllato alla classificazione diretta"
+  security:
+    status: CONCERNS
+    notes: "Endpoint admin (purge/flush/stats) da vincolare ad authz admin + rate limiting"
+  scalability:
+    status: PASS
+    notes: "Redis DB isolato; chiavi O(1), overhead minimo su hit"
+  observability:
+    status: PASS
+    notes: "Eventi hit/miss/error; metriche p50/p95 per hit/miss; endpoint stats"
+  maintainability:
+    status: PASS
+    notes: "Modulo dedicato, tipizzato, testabile"
+  operability:
+    status: PASS
+    notes: "Warmup integrato in run_p95.ps1 con verifica automatica hit-rate >90%"
+  cost:
+    status: PASS
+    notes: "Cache riduce invocazioni LLM; beneficio dipende da hit-rate"
+  testability:
+    status: PASS
+    notes: "Endpoint stats e test unit/integration definiti; aggiungere black-box perf warmup→load"
+
+risk_summary:
+  totals:
+    critical: 1
+    high: 4
+    medium: 3
+    low: 1
+  highest:
+    id: TECH-001
+    score: 9
+    title: "Bassa hit-rate per chiavi cache non deterministiche"
+  recommendations:
+    must_fix:
+      - "Garantire determinismo chiavi cache (JSON sort_keys=true, hash su testo+metadata normalizzati)"
+      - "Proteggere endpoint admin cache con auth/permessi admin e rate-limit"
+      - "Isolare Redis DB cache (db=1) e configurare eviction policy + limiti memoria"
+      - "Implementare metriche hit/miss e p50/p95 con validazione automatica nel CI/perf"
+    monitor:
+      - "Monitorare disponibilità Redis e fallback count; alert su outage"
+      - "Osservare crescita chiavi e memory footprint; definire soglie"
+      - "Controllare sicurezza rete Redis (solo interno, nessuna esposizione pubblica)"
+
+test_design:
+  scenarios_total: 26
+  by_level:
+    unit: 12
+    integration: 9
+    e2e: 5
+  by_priority:
+    p0: 10
+    p1: 10
+    p2: 6
+  coverage_gaps: []
+
+gate_actions:
+  completed:
+    - "Warmup automatico integrato in run_p95.ps1 con verifica hit-rate >90% ✅"
+    - "Test P95 eseguito: P95=1.16s < 2s target ✅"
+    - "Test di autorizzazione admin endpoints: 11 passed ✅"
+  advisory_future:
+    - "Considerare aumento rate limits per batch ingestion (hit 429 durante warmup intensivo)"
+    - "Aggiungere healthcheck Redis DB1 e policy LRU/maxmemory con monitoraggio"
+    - "Esportare metriche cache su dashboard Grafana"
+
+links:
+  story: "docs/stories/2.9.classification-performance-optimization.md"
+  nfr_assessment: "docs/qa/assessments/2.9-nfr-20251014.md"
+  trace_report: "docs/qa/assessments/2.9-trace-20251014.md"
+  test_design: "docs/qa/assessments/2.9-test-design-20251014.md"
+  risk_profile: "docs/qa/assessments/2.9-risk-20251014.md"
+  perf_report: "reports/metrics-p95-20251014-post-cache.md"

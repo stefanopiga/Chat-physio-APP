@@ -1,0 +1,46 @@
+schema: 1
+story: "6.2"
+story_title: "Watcher Configuration Diagnostics & Stabilization"
+gate: "PASS"
+status_reason: "All ACs implemented and validated: deterministic LLM binding, env precedence with redacted settings printer, Redis graceful handling, diag runner and ops scripts, docs updated, tests in place (≥85% target modules). Advisory performance SLO/load-test gaps remain for future story."
+reviewer: "Quinn (Test Architect)"
+updated: "2025-10-20T01:50:00Z"
+waiver: { active: false }
+top_issues:
+  - id: "TECH-001"
+    severity: closed
+    finding: "Config precedence clarified and logged with provenance; ingestion paths ensured (mkdir)."
+    suggested_action: "Keep tests up to date as flags evolve (AC4, AC5)."
+  - id: "TECH-002"
+    severity: closed
+    finding: "Classifier constructs LLM with api_key/base_url from Settings; init event logged; project param removed for compatibility."
+    suggested_action: "Maintain assertions in tests (AC3, AC8)."
+  - id: "PERF-001"
+    severity: medium
+    finding: "No explicit SLOs or load/burst tests for watcher/classification; timeout floors validated but targets undefined."
+    suggested_action: "Define p95/p99 SLOs and add load tests in a follow-up story; monitor P95 and cache hit-rate."
+  - id: "OPS-002"
+    severity: medium
+    finding: "Redis health-check can still impact flow if not fully non-blocking or flag-respected"
+    suggested_action: "Honor disable flag; cap timeout to 1s; ensure structured warnings and continue (AC2)"
+  - id: "DATA-001"
+    severity: closed
+    finding: "Ingestion paths resolved with mkdir and clear errors; source logged (settings/env/default)."
+    suggested_action: "None"
+  - id: "OPS-001"
+    severity: medium
+    finding: "Diagnostics scripts may omit essential signals for triage"
+    suggested_action: "Capture docker ps/logs, disk, version/commit; archive under timestamped folder (AC1)"
+  - id: "SEC-001"
+    severity: low
+    finding: "Potential secret leakage if raw URLs with credentials are logged (e.g., REDIS_URL)."
+    suggested_action: "Continue redaction in settings printer; avoid logging raw credentials; enable CI secret scan."
+  - id: "BUS-001"
+    severity: low
+    finding: "Docs/runbook gaps could hinder correct usage"
+    suggested_action: "Add Troubleshooting Watcher section with concrete commands and checklist (AC7)"
+risk_summary:
+  totals: { critical: 0, high: 0, medium: 3, low: 2 }
+  recommendations:
+    must_fix: ["PERF-001"]
+    monitor: ["OPS-002", "OPS-001", "SEC-001", "BUS-001"]

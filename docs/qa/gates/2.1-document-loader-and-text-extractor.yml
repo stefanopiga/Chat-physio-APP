@@ -1,0 +1,40 @@
+schema: 1
+story: "2.1"
+story_title: "Document Loader & Text Extractor"
+gate: PASS
+status_reason: "Tutti gli AC soddisfatti; NFR verificati (security: PASS, performance: PASS, reliability: PASS, maintainability: PASS)."
+reviewer: "Quinn (Test Architect)"
+updated: "2025-09-18T00:00:00Z"
+
+top_issues: []
+waiver: { active: false }
+
+quality_score: 85
+expires: "2025-10-02T00:00:00Z"
+
+evidence:
+  tests_reviewed: 13
+  risks_identified: 1
+  trace:
+    ac_covered: [1, 2, 3, 4, 5]
+    ac_gaps: []
+
+nfr_validation:
+  security:
+    status: PASS
+    notes: "Story 2.1: nessun endpoint pubblico; nessun secret hardcoded; ingestion solo server-side. Riferimento: docs/architecture/sezione-10-sicurezza-e-performance.md"
+  performance:
+    status: PASS
+    notes: "Story 2.1: estrazione completata su documenti standard; logging tempi di elaborazione previsto. Riferimento: docs/architecture/sezione-10-sicurezza-e-performance.md"
+  reliability:
+    status: PASS
+    notes: "Error handling e salvataggio temporaneo testati."
+  maintainability:
+    status: PASS
+    notes: "Soglia coverage impostata e rispettata (86.46%)."
+
+recommendations:
+  immediate: []
+  future:
+    - action: "Definire target prestazionali e di coverage minimi"
+      refs: ["docs/qa/assessments/epic-2.1-nfr-20250918.md"]

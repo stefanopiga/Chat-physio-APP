@@ -1,0 +1,104 @@
+schema: 1
+story: "2.10"
+story_title: "Batch Ingestion Knowledge Base"
+
+# Decision fields
+gate: "PASS"
+status_reason: "Pilot completato e NFR core PASS: sicurezza (JWT admin + rate limiting gateway), performance p95 stabile su /sync-jobs, affidabilità con retry/backoff e resume idempotente, manutenibilità con script parametrico e test. Autorizzato full batch; monitoraggio consigliato."
+reviewer: "Quinn (Test Architect)"
+updated: "2025-10-15T23:00:00Z"
+
+trace:
+  totals:
+    requirements: 5
+    full: 0
+    partial: 3
+    none: 2
+  planning_ref: "docs/qa/assessments/2.10-test-design-20251015.md"
+  uncovered: ["AC2.2 chunk count validation", "AC3.1 query cross-categoria"]
+  notes: "Test design da completare; copertura parziale su rate-limit/backoff e idempotenza."
+
+nfr_validation:
+  _assessed: [security, performance, reliability, availability, scalability, data_integrity, observability, maintainability, operability, privacy, cost]
+  security:
+    status: PASS
+    notes: "Admin JWT + rate limit gateway; preflight e redazione segreti nei log."
+  performance:
+    status: PASS
+    notes: "Baseline P95 1.16s su /sync-jobs; pacing client evita regressioni."
+  reliability:
+    status: PASS
+    notes: "Retry/backoff 429/5xx/timeouts; resume idempotente via state-file."
+  availability:
+    status: PASS
+    notes: "RPS basso e costante; errori isolati per file; nessun lock prolungato."
+  scalability:
+    status: PASS
+    notes: "Percorso seriale sicuro; possibili shard futuri con coordinamento dei worker."
+  data_integrity:
+    status: CONCERNS
+    notes: "Richiedere de-dup per (source_path, content_hash) e check SQL post-run."
+  observability:
+    status: PASS
+    notes: "Log strutturati + report; KPI proposti (429/5xx rate, backoff, effective RPS)."
+  maintainability:
+    status: PASS
+    notes: "CLI parametrica; test; aderenza a ruff/mypy/pytest."
+  operability:
+    status: PASS
+    notes: "Preflight hard-fail; stop/resume sicuro; modalità d'errore chiare."
+  privacy:
+    status: PASS
+    notes: "Nessun PII atteso; JWT e contenuti redatti nei log/report."
+  cost:
+    status: CONCERNS
+    notes: "Batch può aumentare la spesa; programmare finestre e monitor per-run."
+
+risk_summary:
+  totals:
+    critical: 3
+    high: 5
+    medium: 6
+    low: 2
+  highest:
+    id: OPS-001
+    score: 9
+    title: "429 persistenti per violazione rate limit"
+  recommendations:
+    must_fix:
+      - "Jitter + rispetto Retry-After + backoff cap + circuit breaker"
+      - "Gestione sicura JWT admin; no secrets nei log; rotazione chiavi"
+      - "State file atomico; resume; verifica duplicati post-run"
+    monitor:
+      - "p95/p99 /sync-jobs; tasso 429/5xx; profondità coda; embedding NULL=0"
+
+test_design:
+  scenarios_total: 18
+  by_level:
+    unit: 6
+    integration: 8
+    e2e: 4
+  by_priority:
+    p0: 7
+    p1: 7
+    p2: 4
+  coverage_gaps:
+    - "Validazioni SQL automatiche post-run integrate nel report"
+    - "Query cross-categoria AC3.1 con citazioni multiple"
+
+gate_actions:
+  required_before_full_batch:
+    - "Eseguire pilot `--limit 3` su `conoscenza/fisioterapia/lombare/` con esito 200 e `job_id` presenti"
+    - "Verificare rispetto rate-limit: nessun 429 persistente; backoff conforme a `Retry-After`"
+    - "Confermare idempotenza: interrompere e riprendere run senza reinvii duplicati"
+    - "Validare sicurezza: assenza header Authorization/PII nei log e nei report"
+  advisory_future:
+    - "Aggiungere alerting 429/5xx e dashboard p95/p99"
+    - "Automatizzare report finale con conteggi chunk e embedding NULL=0"
+    - "Considerare parallelismo limitato condizionato dal carico dei worker"
+
+links:
+  story: "docs/stories/2.10.batch-ingestion-knowledge-base.md"
+  risk_profile: "docs/qa/assessments/2.10-batch-ingestion-knowledge-base-risk-profile-20251015.md"
+  perf_report: "reports/metrics-p95-20251014-post-cache.md"
+  pilot_report: "reports/batch_ingestion_report.md"

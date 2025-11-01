@@ -1,0 +1,110 @@
+schema: 1
+story:
+  id: "4.4"
+  title: "Document Chunk Explorer"
+  epic: "Epic 4 — Post-MVP Enhancements"
+  files:
+    story_doc: "docs/stories/4.4-document-chunk-explorer.md"
+    trace_doc: "docs/qa/assessments/4.4-trace-20251005.md"
+    nfr_doc: "docs/qa/assessments/4.4-nfr-20251005.md"
+
+# Campi decisione
+gate: "not available in source"
+status_reason: "not available in source"
+reviewer: "not available in source"
+
+a cceptance_criteria:
+  total: 10  # [fonte: L50-L82]
+  passed: "not available in source"
+  failed: "not available in source"
+  notes: "Requisiti elencati in L52-L81."
+
+trace:
+  planning_ref: "not available in source"
+  uncovered: []
+  notes: "Vedi trace doc generato: docs/qa/assessments/4.4-trace-20251005.md"
+
+nfr_validation:
+  _assessed: [performance, access_control, responsiveness, rate_limiting, pagination]
+  performance:
+    status: "declared"
+    notes: "Caricamento chunk list < 500ms per 200 chunk. [L78-L79, L641-L642]"
+  access_control:
+    status: "declared"
+    notes: "Accessibile solo ad admin autenticati (AdminGuard). [L80-L81]"
+  responsiveness:
+    status: "declared"
+    notes: "Layout funzionale su mobile/desktop. [L76-L77]"
+  rate_limiting:
+    status: "declared"
+    notes: "30 req/hour per admin. [L581-L582, L663]"
+  pagination:
+    status: "declared"
+    notes: "Paginazione obbligatoria (default 50/page). [L577-L579]"
+
+risk_summary:
+  listed:
+    - id: "R-4.4-1"  # [L577-L581]
+      probability: "Media"
+      impact: "Medio"
+      description: "Performance lenta con documenti > 500 chunk"
+    - id: "R-4.4-2"
+      probability: "Bassa"
+      impact: "Medio"
+      description: "Metadata inconsistenti se schema cambia"
+    - id: "R-4.4-3"
+      probability: "Alta"
+      impact: "Alto"
+      description: "Document table non esiste in Supabase"
+    - id: "R-4.4-4"
+      probability: "Bassa"
+      impact: "Basso"
+      description: "Large chunk content overflow UI"
+    - id: "R-4.4-5"
+      probability: "Bassa"
+      impact: "Medio"
+      description: "Admin abuse: query massive su documenti grandi"
+
+testing:
+  backend_unit_tests:
+    total: 6  # [L589-L598, L801]
+    passed: 6  # [L801]
+    duration_seconds: 6.22  # [L801]
+  frontend_unit_tests:
+    total: 8  # [L605-L616, L802]
+    passed: 8  # [L802]
+    duration_seconds: 5.52  # [L802]
+  e2e_tests:
+    total: 6  # [L623-L631, L803]
+    passed: 6  # [L803]
+    duration_seconds: 13.9  # [L803]
+  duration_total_seconds: "< 30"  # [L633-L634]
+
+implementation:
+  backend_endpoints:
+    - "GET /api/v1/admin/documents"  # [L134-L189]
+    - "GET /api/v1/admin/documents/{document_id}/chunks"  # [L202-L320]
+  frontend_pages:
+    - "DocumentsPage.tsx (/admin/documents)"  # [L365-L413]
+    - "DocumentChunksPage.tsx (/admin/documents/:documentId/chunks)"  # [L416-L519]
+  database:
+    - table: "document_chunks"  # [L88-L101]
+    - metadata_fields: ["chunking_strategy", "page_number", "document_name", "chunk_size"]  # [L102-L110]
+
+nfr_assessment_summary:
+  adoption: ">=50% admin sessions usano Document Explorer"  # [L639]
+  quality_improvement: ">=3 documenti con chunking sub-ottimale in 2 settimane"  # [L640]
+  performance_p95: "< 500ms"  # [L641]
+  usability: "Zero ticket support"  # [L642]
+
+gate_decision:
+  decision: "not available in source"
+  confidence: "not available in source"
+  date: "not available in source"
+  rationale:
+    - "Test risultati dichiarati PASS in fonte. [L801-L804]"
+
+sign_off:
+  qa_lead: "not available in source"
+  tech_lead: "not available in source"
+  product_owner: "not available in source"

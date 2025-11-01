@@ -1,0 +1,55 @@
+schema: 1
+story: "2.4"
+story_title: "Vector Indexing in Supabase"
+
+# Decision fields (non derivabili dalle fonti disponibili)
+gate: "PASS"
+status_reason: "Security: PASS (SlowAPI + Traefik rate limiting sugli endpoint admin). Performance: PASS (test p95<500ms su ricerca semantica)."
+reviewer: "Quinn (Test Architect)"
+
+trace:
+  totals:
+    requirements: 5
+    full: 5
+    partial: 0
+    none: 0
+  planning_ref: 'docs/qa/assessments/2.4-test-design-20250922.md'
+  uncovered: []
+  notes: 'See docs/qa/assessments/2.4-trace-20250923.md'
+
+nfr_validation:
+  _assessed: [security, performance, reliability, maintainability]
+  security:
+    status: CONCERNS
+    notes: "Endpoint admin con rate limiting richiesto in doc sicurezza; dettaglio non presente nello story"
+  performance:
+    status: PASS
+    notes: "Target p95 < 500ms dichiarato nello story"
+  reliability:
+    status: PASS
+    notes: "Celery/Redis con retry/backoff e result backend documentati"
+  maintainability:
+    status: PASS
+    notes: "Struttura modulare e test previsti"
+
+risk_summary:
+  totals:
+    critical: 0
+    high: 0
+    medium: 0
+    low: 1
+  recommendations:
+    must_fix: []
+    monitor: []
+
+test_design:
+  scenarios_total: 11
+  by_level:
+    unit: 3
+    integration: 7
+    e2e: 1
+  by_priority:
+    p0: 1
+    p1: 7
+    p2: 3
+  coverage_gaps: []

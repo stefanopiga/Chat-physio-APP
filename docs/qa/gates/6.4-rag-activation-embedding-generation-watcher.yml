@@ -1,0 +1,17 @@
+schema: 1
+story: '6.4'
+gate: CONCERNS
+status_reason: 'Performance SLOs not formalized in CI; functionality and tests pass.'
+reviewer: 'Quinn'
+updated: '2025-10-20T18:06:36Z'
+top_issues:
+  - id: 'PERF-001'
+    severity: medium
+    finding: 'No enforced retrieval SLO (p95 <2s) in CI/integration tests'
+    suggested_action: 'Add timing assertions and optional perf job under --run-integration'
+  - id: 'TEST-002'
+    severity: low
+    finding: 'Health endpoint does not expose timing metrics'
+    suggested_action: 'Include indexing/retrieval timing in /admin/debug/embedding-health summary'
+waiver:
+  active: false

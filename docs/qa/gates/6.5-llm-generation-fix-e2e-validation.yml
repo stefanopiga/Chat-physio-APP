@@ -1,0 +1,90 @@
+schema: 1
+story: '6.5'
+gate: CONCERNS
+status_reason: 'Non-blocking gaps: nano temp guard, E2E docs, logging/metrics. Proceed with awareness.'
+reviewer: 'Quinn'
+updated: '2025-10-20T21:50:00Z'
+top_issues:
+  - id: 'TECH-001'
+    severity: high
+    finding: 'gpt-5-nano temperature override can cause runtime errors in generation paths.'
+    suggested_action: 'Implement model-aware factory to skip temperature override for nano; add unit/integration coverage.'
+  - id: 'OPS-001'
+    severity: medium
+    finding: 'Real E2E runs may introduce flakiness/cost without strict gating.'
+    suggested_action: 'Enforce RUN_E2E_REAL flag, nightly schedule, and protected CI context with alerts.'
+  - id: 'DOC-001'
+    severity: medium
+    finding: 'Missing Dev Notes > Testing subsection per template.'
+    suggested_action: 'Add required Testing subsection under Dev Notes and align story Status to template choices.'
+waiver:
+  active: false
+
+# risk_summary (from risk-profile)
+risk_summary:
+  totals:
+    critical: 0
+    high: 1
+    medium: 5
+    low: 2
+  highest:
+    id: TECH-001
+    score: 6
+    title: 'gpt-5-nano temperature override causes runtime errors'
+  recommendations:
+    must_fix:
+      - 'Implement model-aware temperature handling (skip override for nano)'
+      - 'Centralize ChatOpenAI construction via a single factory'
+    monitor:
+      - 'Budget guard and CI rate limiting for real E2E'
+      - 'Latency P95/P99, token usage, and retry/backoff metrics'
+
+# test_design summary
+test_design:
+  scenarios_total: 14
+  by_level:
+    unit: 6
+    integration: 5
+    e2e: 3
+  by_priority:
+    p0: 5
+    p1: 6
+    p2: 3
+  coverage_gaps: []
+
+# nfr_validation block (from 6.5-nfr-20251020)
+nfr_validation:
+  _assessed: [security, performance, reliability, maintainability]
+  security:
+    status: CONCERNS
+    notes: >-
+      Ensure auth on generation endpoint; avoid logging secrets; enforce RUN_E2E_REAL gating;
+      admin rate limiting present via SlowAPI; validate input sanitization for messages API.
+  performance:
+    status: CONCERNS
+    notes: >-
+      Define explicit generation p95 target; implement AC5 metrics (latency/tokens/cost);
+      retrieval perf baseline referenced in 6.4; add simple timers around generation.
+  reliability:
+    status: CONCERNS
+    notes: >-
+      Implement retry/backoff for OpenAI (2 retries, 1/2/4s; 60s wait on 429 not counting);
+      add timeouts and structured error logs; ensure E2E cleans test data.
+  maintainability:
+    status: CONCERNS
+    notes: >-
+      Add e2e test with @pytest.mark.e2e and RUN_E2E_REAL gate; register markers;
+      write reports to reports/e2e/; document how to run and skip in CI.
+
+# trace block (from 6.5-trace-20251020)
+trace:
+  totals:
+    requirements: 5
+    full: 1
+    partial: 3
+    none: 1
+  planning_ref: 'docs/qa/assessments/6.5-test-design-20251020.md'
+  uncovered:
+    - ac: 'AC4'
+      reason: 'Documentation updates not implemented'
+  notes: 'See docs/qa/assessments/6.5-trace-20251020.md'

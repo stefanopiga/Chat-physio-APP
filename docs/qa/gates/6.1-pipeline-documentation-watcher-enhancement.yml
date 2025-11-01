@@ -1,0 +1,24 @@
+schema: 1
+story: '6.1'
+gate: CONCERNS
+status_reason: 'Critical risks identified (legacy parity, LLM latency); proceed with mitigations and monitoring.'
+reviewer: 'Quinn'
+updated: '2025-10-17T00:00:00Z'
+top_issues:
+  - id: 'TECH-001'
+    severity: high
+    finding: 'Legacy parity with WATCHER_ENABLE_CLASSIFICATION=false may regress behavior vs pre-6.1.'
+    suggested_action: 'Add golden dataset parity tests and enforce snapshot comparisons before merge.'
+  - id: 'PERF-001'
+    severity: high
+    finding: 'LLM classification introduces latency/backlog; risk of timeouts with cold cache.'
+    suggested_action: 'Enable Redis cache, enforce 10s timeout, add staged rollout and SLO alerts.'
+  - id: 'OPS-002'
+    severity: medium
+    finding: 'Observability metrics/logs may be incomplete or inconsistent with AC7.'
+    suggested_action: 'Implement WatcherMetrics and verify Prometheus export + structured logs in tests.'
+  - id: 'DATA-001'
+    severity: medium
+    finding: 'Metadata propagation (images_count, tables_count) could be incomplete/incorrect.'
+    suggested_action: 'Add integration tests for metadata on PDF/DOCX/TXT and validation checks.'
+waiver: { active: false }

@@ -1,0 +1,21 @@
+schema: 1
+story: '2.8'
+gate: CONCERNS
+status_reason: 'Rischi high su gestione secrets, affidabilità servizi esterni e coerenza P95 richiedono mitigazioni provate prima del via libera.'
+reviewer: 'Quinn'
+updated: '2025-10-13T20:30:00Z'
+top_issues:
+  - id: 'SEC-201'
+    severity: high
+    finding: 'Secret management non ancora verificato con vault centralizzato e scanner pipeline attivi; rischio leakage nei log CI.'
+    suggested_action: 'Completare configurazione vault/secrets manager, integrare scanner (trufflehog/detect-secrets) e allegare evidenze di log sanitizzati.'
+  - id: 'OPS-201'
+    severity: high
+    finding: 'Pipeline E2E dipende da OpenAI/Supabase senza fallback validato; downtime o rate limit bloccherebbero i run.'
+    suggested_action: 'Eseguire test di resilienza con retry/backoff e documentare piano di fallback operativo per CI e run manuali.'
+  - id: 'PERF-201'
+    severity: high
+    finding: 'Metriche P95 storiche non affidabili; manca prova di raccolta con campione sufficiente e delta <=10% rispetto al dashboard.'
+    suggested_action: 'Raccogliere P95 con almeno 300 richieste, confrontare con dashboard Supabase e allegare nota/issue per differenze >10%.'
+waiver:
+  active: false

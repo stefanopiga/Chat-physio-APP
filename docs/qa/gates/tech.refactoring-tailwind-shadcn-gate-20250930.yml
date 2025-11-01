@@ -1,0 +1,35 @@
+gate: PASS
+story: docs/stories/tech.refactoring-tailwind-shadcn.md
+rationale:
+  - AC1 Tailwind installato e configurato in apps/web
+    evidence:
+      - apps/web/package.json: dependencies.tailwindcss, dependencies.@tailwindcss/vite presenti
+      - apps/web/vite.config.ts: plugins [react(), tailwindcss()]
+  - AC2 Shadcn/UI inizializzato con temi Light/Dark
+    evidence:
+      - apps/web/components.json: baseColor: stone, css: src/index.css, aliases impostati
+      - apps/web/src/index.css: variabili semantiche + variante .dark
+  - AC3 Rimozione completa stili inline in components/pages
+    evidence:
+      - grep apps/web/src: assenza "style={" (verifica automatizzata)
+      - migrazioni: ChatInput.tsx, ChatMessagesList.tsx, CitationPopover.tsx, FeedbackControls.tsx, CitationBadge.tsx
+      - migrazioni: ChatPage.tsx, AccessCodePage.tsx, LoginPage.tsx, DashboardPage.tsx
+  - AC4 Sostituzione stili inline con classi Tailwind senza colori hard-coded
+    evidence:
+      - uso token: bg-card, text-card-foreground, border-border, bg-primary, text-primary-foreground, ecc.
+      - nessun valore colore hard-coded nel JSX
+  - AC5 Adozione variabili semantiche di theming
+    evidence:
+      - apps/web/src/index.css: --background, --foreground, --card, --primary, ...
+  - AC6 Aggiornamento documentazione di conformità
+    evidence:
+      - docs/prompt-for-lovable_V0.md: clausola di conformità a Tailwind + Shadcn e divieto stili inline/CSS vanilla
+  - AC7 Verifica accessibilità base
+    evidence:
+      - ruoli ARIA per errori (role="alert"), focus outline via focus:ring, label presenti
+  - Build & Test eseguiti con successo
+    evidence:
+      - terminal build: vite ✓ built in 5.18s
+      - vitest: 3 file test passati, 6 test passati
+notes:
+  - Componenti Shadcn aggiuntivi non ancora importati; utilizzare `shadcn add` on-demand.

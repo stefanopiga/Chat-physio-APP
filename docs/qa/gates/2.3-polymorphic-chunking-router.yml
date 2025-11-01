@@ -1,0 +1,45 @@
+schema: 1
+story: "2.3"
+story_title: "Polymorphic Chunking Router"
+gate: PASS
+status_reason: "AC soddisfatti; minori gap su metadata assertions e target sicurezza non definito."
+reviewer: "Quinn (Test Architect)"
+updated: "2025-09-21T00:00:00Z"
+
+top_issues:
+  - id: "TEST-002"
+    severity: low
+    finding: "Asserzioni su metadata (chunking_strategy, chunks_count) aggiunte in test integrazione"
+    suggested_action: "Nessuna, copertura presente"
+  - id: "SEC-002"
+    severity: medium
+    finding: "Target sicurezza non definito per ingestion"
+    suggested_action: "Definire requisiti NFR di sicurezza o marcarli out-of-scope"
+
+trace:
+  totals:
+    requirements: 5
+    full: 3
+    partial: 2
+    none: 0
+  uncovered:
+    - ac: 'AC4'
+      reason: 'Mancano asserzioni su metadata (chunking_strategy, chunks_count)'
+    - ac: 'AC5'
+      reason: 'Nessun test che convalidi esplicitamente il design modulare'
+  notes: 'See docs/qa/assessments/2.3-trace-20250921.md'
+
+nfr_validation:
+  _assessed: [security, performance, reliability, maintainability]
+  security:
+    status: CONCERNS
+    notes: 'Target unknown; nessun requisito di sicurezza nella story; rate limiting non applicabile nel perimetro ingestion'
+  performance:
+    status: PASS
+    notes: 'Splitter efficienti; test eseguiti rapidamente; nessun target prestazionale specifico'
+  reliability:
+    status: PASS
+    notes: 'Gestione errori in watcher; fallback del router attivo'
+  maintainability:
+    status: PASS
+    notes: 'Modularità elevata; coverage 91.90% (>85% target pytest.ini)'

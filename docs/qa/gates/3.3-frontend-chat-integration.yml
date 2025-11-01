@@ -1,0 +1,14 @@
+gate: PASS
+story: docs/stories/3.3.frontend-chat-integration.md
+rationale:
+  - AC1: UI chiama POST /api/v1/chat/query (apps/web/src/lib/apiClient.ts:54-57; apps/web/src/pages/ChatPage.tsx:35-36)
+  - AC2: Indicatore di caricamento "Caricamento..." durante richiesta (apps/web/src/pages/ChatPage.tsx:27-31,72-73)
+  - AC3: Visualizzazione risposta dall'assistente nella lista messaggi (apps/web/src/pages/ChatPage.tsx:38-45; apps/web/src/components/ChatMessagesList.tsx:24-26)
+  - AC4: Persistenza sessionId in localStorage con chiave "chat.sessionId" (apps/web/src/pages/ChatPage.tsx:6-14,23-25)
+  - E2E: mock API, prerequisiti AuthGuard e verifica loader/risposta (apps/web/tests/story-3.3.spec.ts:9-12,16-18,25-35,38-55)
+  - Auth: utilizzo JWT Supabase o token temporaneo per Authorization (apps/web/src/lib/apiClient.ts:14-26,38-51)
+  - Error handling conforme a Dev Notes: 401→/login, 429→messaggio, 500→generico (apps/web/src/pages/ChatPage.tsx:45-53)
+notes:
+  - Citazioni placeholder; implementazione completa prevista nella story 3.4 (docs/stories/3.3.frontend-chat-integration.md:35)
+  - Rate limiting 60/min indicato in Dev Notes; non verificato in questo gate (docs/stories/3.3.frontend-chat-integration.md:28-29)
+  - Rotte protette: presenza AuthGuard confermata e attesa in E2E (apps/web/src/components/AuthGuard.tsx:46-48; apps/web/tests/story-3.3.spec.ts:16-18)

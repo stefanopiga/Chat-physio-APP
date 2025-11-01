@@ -1,0 +1,136 @@
+gate:
+  story_id: "5.4.3"
+  title: "API Logic Bugs Resolution"
+  date: "2025-10-09"
+  status: CONCERNS
+  owner: "QA/Backend"
+  source_docs:
+    - "docs/stories/5.4.3-api-logic-bugs-resolution.md"
+    - "docs/qa/assessments/5.4.3-nfr-assessment-20251009.md"
+    - "docs/qa/assessments/5.4.3-risk-profile-20251009.md"
+    - "docs/qa/assessments/5.4.3-test-design-20251009.md"
+
+  acceptance_criteria:
+    AC1:
+      name: "Refresh Token Error Handling → 401 (invalid/revoked/parent revoked)"
+      status: PASS
+      evidence:
+        - "Gestione esplicita 0 rows → HTTP 401"
+        - "Revoked token check → 401"
+        - "Student token inactive → 401"
+      validation:
+        - "pytest -k refresh_token: 6/6 passed"
+      source: "docs/stories/5.4.3-api-logic-bugs-resolution.md L312-L319, L399-L421"
+
+    AC2:
+      name: "Admin Token Creation → 201 con UUID valido"
+      status: PASS
+      evidence:
+        - "Fixture admin_token_in_db con UUID valido"
+        - "Creazione utente admin in DB e cleanup deterministico"
+      validation:
+        - "pytest -k create_student_token_success: 2/2 passed"
+      source: "docs/stories/5.4.3-api-logic-bugs-resolution.md L321-L328, L464-L530, L547-L556"
+
+    AC3:
+      name: "Pass rate ≥90% (184+/204), failed ≤6, errors=0"
+      status: FAIL
+      evidence:
+        - "After 5.4.3: 176/204 PASSED (86.3%), 4 failed OUT OF SCOPE"
+      validation:
+        - "pytest tests/ -v --tb=short --maxfail=10"
+      source: "docs/stories/5.4.3-api-logic-bugs-resolution.md L779-L786, L718-L722"
+
+  nfr_assessment:
+    security:
+      status: PASS
+      notes: "401 per auth failures; no 500 leak; UUID validation"
+      evidence:
+        - "NFR1 HTTP Spec Compliance rispettato"
+        - "HTTPException su 0 rows"
+      source: "docs/stories/5.4.3-api-logic-bugs-resolution.md L341-L347, L828-L834, L772-L778"
+
+    performance:
+      status: FAIL
+      notes: "p95 587ms > 500ms (semantic search) — out of scope della story"
+      evidence:
+        - "test_semantic_search_p95_under_500ms fallito"
+      source: "docs/stories/5.4.3-api-logic-bugs-resolution.md L260-L269"
+
+    reliability:
+      status: PASS
+      notes: "Errors=0; stabilità test target: 0 flakiness"
+      evidence:
+        - "Success Criteria stability (5 run)"
+        - "After: errors=0"
+      source: "docs/stories/5.4.3-api-logic-bugs-resolution.md L589-L592, L289-L298"
+
+    maintainability:
+      status: PASS
+      notes: "Coverage 93% mantenuta; durata test <500s; fixture robusta"
+      evidence:
+        - "Coverage 93%"
+        - "Test duration 479s"
+      source: "docs/stories/5.4.3-api-logic-bugs-resolution.md L625-L638, L776-L778"
+
+  risk_summary:
+    totals:
+      critical: 3
+      high: 2
+      medium: 5
+      low: 2
+    highest:
+      id: "SEC-001"
+      score: 9
+      title: "500 instead of 401 in /auth/refresh-token"
+    recommendations:
+      must_fix:
+        - "Gestione 0 rows → 401; revoked checks; UUID valido admin"
+      monitor:
+        - "Alert 401/5xx rates su auth; contract tests codici HTTP"
+    source: "docs/qa/assessments/5.4.3-risk-profile-20251009.md L114-L130"
+
+  test_metrics:
+    full_suite:
+      total: 204
+      passed: 176
+      failed: 4
+      errors: 0
+      pass_rate: 86.3
+      coverage: 93
+      duration_s: 479
+      execution_date: "2025-10-09"
+      source: "docs/stories/5.4.3-api-logic-bugs-resolution.md L771-L778, L781-L786"
+
+  decision:
+    status: CONCERNS
+    merge_blocker: PARTIAL
+    rationale: |
+      AC1 e AC2 soddisfatti. AC3 non soddisfatto (pass rate 86.3% < 90%) a causa di 4 test OUT OF SCOPE.
+      NFR: Security/ Reliability/ Maintainability PASS; Performance FAIL (fuori scope della story, ma dato presente).
+      Raccomandata approvazione condizionata con azioni su item out-of-scope pianificate.
+    conditions:
+      - id: G-5.4.3-01
+        title: "Risoluzione failure out-of-scope (4 test)"
+        success_criteria: "Tutti i 4 test rimanenti passano o sono esplicitamente deferiti con storie create"
+        verification_status: "PENDING"
+        evidence: "Story 5.5.1, 5.5.2, 5.6, verifica Story 2.x"
+      - id: G-5.4.3-02
+        title: "Performance p95 ≤ 500ms (semantic search)"
+        success_criteria: "p95 ≤ 500ms nel test `test_semantic_search_p95_under_500ms`"
+        verification_status: "PENDING"
+        evidence: "docs/stories/5.4.3 L260-L269"
+
+  approval:
+    technical_lead: PENDING
+    qa_lead: PENDING
+    product_owner: PENDING
+    approval_date: "2025-10-09"
+
+meta:
+  document_version: "1.0"
+  assessment_completed: "2025-10-09"
+  related_documents:
+    - "docs/qa/gates/5.4.2-fk-constraint-resolution-gate-20251009.yml"
+    - "docs/qa/assessments/5.4.3-nfr-assessment-20251009.md"
+    - "docs/qa/assessments/5.4.3-risk-profile-20251009.md"
