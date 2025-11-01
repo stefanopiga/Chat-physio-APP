@@ -1,6 +1,6 @@
 services:
   proxy:
-    container_name: fisio-rag-proxy
+    container_name: physio-rag-proxy
     image: traefik:v3.1
     command:
       - "--api.insecure=true"
@@ -13,10 +13,10 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
     networks:
-      - fisio-rag-net
+      - physio-rag-net
 
   api:
-    container_name: fisio-rag-api
+    container_name: physio-rag-api
     build:
       context: .
       dockerfile: ./apps/api/Dockerfile
@@ -61,12 +61,12 @@ services:
       - "traefik.http.routers.api-admin-rl-router.service=api-service"
       - "traefik.http.routers.api-admin-rl-router.middlewares=api-admin-rl@docker"
     networks:
-      - fisio-rag-net
+      - physio-rag-net
     depends_on:
       - redis
 
   celery-worker:
-    container_name: fisio-rag-celery-worker
+    container_name: physio-rag-celery-worker
     build:
       context: .
       dockerfile: ./apps/api/Dockerfile
@@ -86,7 +86,7 @@ services:
       - ENABLE_DYNAMIC_MATCH_COUNT=${ENABLE_DYNAMIC_MATCH_COUNT:-false}
       - ENABLE_CHUNK_DIVERSIFICATION=${ENABLE_CHUNK_DIVERSIFICATION:-false}
     networks:
-      - fisio-rag-net
+      - physio-rag-net
     depends_on:
       api:
         condition: service_healthy
@@ -95,7 +95,7 @@ services:
 
   redis:
     image: redis:alpine
-    container_name: fisio-rag-redis
+    container_name: physio-rag-redis
     # Story 2.6.1: Redis persistence configured for production
     # - AOF enabled for data durability
     # - Named volume prevents data loss on container restart
@@ -103,10 +103,10 @@ services:
     volumes:
       - redis_data:/data
     networks:
-      - fisio-rag-net
+      - physio-rag-net
 
   web:
-    container_name: fisio-rag-web
+    container_name: physio-rag-web
     build:
       context: .
       dockerfile: ./apps/web/Dockerfile
@@ -121,10 +121,10 @@ services:
       - "traefik.http.routers.web-router.service=web-service" # Collega il router al servizio
       - "traefik.http.services.web-service.loadbalancer.server.port=80"
     networks:
-      - fisio-rag-net
+      - physio-rag-net
 
 networks:
-  fisio-rag-net:
+  physio-rag-net:
     driver: bridge
 
 volumes:

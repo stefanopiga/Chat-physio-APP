@@ -17,3 +17,6 @@ GRANT ALL ON TABLE public.feedback TO postgres;
 -- FROM information_schema.table_privileges 
 -- WHERE table_schema = 'public' AND table_name = 'feedback';
 
+
+
+
