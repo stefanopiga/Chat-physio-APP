@@ -198,6 +198,17 @@ Bounded: [0, 100]
 
 ## 🎯 Quick Start per Ruolo
 
+### 🎓 Utenti e Studenti
+
+**Utilizzo Physio RAG Chat:**
+1. **[Esempi di Utilizzo](../CHAT_EXAMPLES.md)** → domande esempio, best practices, guidelines
+   - 11 domande categorizzate (Generali, Specifiche, Complesse)
+   - Come formulare query efficaci
+   - Cosa aspettarsi dal sistema
+   - Disclaimer medico e limitazioni
+
+---
+
 ### 👨‍💻 Developer
 
 **Setup iniziale:**
@@ -274,6 +285,21 @@ Bounded: [0, 100]
 | 2025-01-17 | **Pydantic Settings Integration** | [Addendum Pydantic Settings](architecture/addendum-pydantic-settings-configuration.md), [Quick Ref](pydantic-settings-quick-reference.md), [Story 2.12](stories/2.12.gpt-5-nano-integration.md) |
 | 2025-10-14 | Classification Cache & HNSW Tuning | [Story 2.9](stories/2.9.classification-cache.md), [Addendum HNSW](architecture/addendum-hnsw-params-and-async.md) |
 | 2025-10-08 | JWT RFC Compliance | [FastAPI Best Practices](architecture/addendum-fastapi-best-practices.md) (v1.1) |
+
+---
+
+## 🗺️ Project Evolution
+
+Per la visione a lungo termine del progetto, miglioramenti futuri pianificati e backlog strategico, consultare **[ROADMAP.md](../ROADMAP.md)**.
+
+Il documento include:
+- Short-term goals (0-3 mesi) - miglioramenti imminenti
+- Mid-term goals (3-6 mesi) - evoluzioni pianificate
+- Long-term vision (6-12+ mesi) - obiettivi strategici
+- Backlog items - idee da valutare
+
+**Ownership**: Team Lead, Product Owner, Product Manager  
+**Frequenza aggiornamento**: Trimestrale o su necessità
 
 ---
 

@@ -149,6 +149,76 @@ graph TD
 
 ---
 
+#### Flow 5: Visualizzazione Cronologia Conversazioni (Epic 9)
+*   **User Goal**: Accedere allo storico completo delle conversazioni passate, ricercare domande precedenti e riprendere sessioni.
+*   **Entry Points**: Link "Cronologia" in Chat Interface (`/chat`), oppure accesso diretto a `/chat/history`.
+*   **Success Criteria**: Lo studente visualizza lista conversazioni, può espandere singole sessioni, ricercare per keywords, ed esportare cronologia.
+
+**Flow Diagram**
+```mermaid
+graph TD
+    A[Start: Chat Interface] --> B{Click su 'Cronologia'};
+    B --> C[Naviga a /chat/history];
+    C --> D[Carica Timeline Sessioni];
+    D --> E[Mostra Lista Cronologica con Preview];
+    E --> F{Azione Utente};
+    F -- Scroll Down --> G[Load More Sessions - Pagination];
+    G --> E;
+    F -- Click su Sessione --> H[Espandi Conversazione Completa];
+    H --> I[Mostra SessionDetailView];
+    I --> J{Azione su Sessione};
+    J -- Continua Conversazione --> K[Reindirizza a /chat con sessionId];
+    J -- Esporta JSON --> L[Download File JSON];
+    J -- Torna a Timeline --> E;
+    F -- Usa Search Bar --> M[Inserisce Keywords];
+    M --> N[Esegue Full-Text Search];
+    N --> O[Mostra Risultati Evidenziati];
+    O --> P{Click su Risultato};
+    P --> H;
+    F -- Torna a Chat --> Q[Naviga a /chat];
+    K --> Q;
+    Q --> R[End: Cronologia Chiusa];
+    L --> I;
+```
+
+**Key Components (Epic 9 - Story 9.3)**:
+
+1. **ConversationTimeline**: Lista sessioni con preview primo messaggio
+   - Infinite scroll per performance (load more on scroll)
+   - Formato: Data/ora, prima domanda (troncata), numero messaggi
+   - Click su sessione → espande dettaglio
+
+2. **HistorySearchBar**: Ricerca full-text con autocomplete
+   - Debounced input (300ms delay)
+   - Keyword highlighting nei risultati
+   - Recent searches cache locale
+   - Clear button
+
+3. **SessionDetailView**: Espansione conversazione completa
+   - Rendering messaggi user/assistant alternati
+   - Citazioni espandibili (riusa popover esistente Story 3.4)
+   - Export button (JSON download)
+   - "Continue conversation" link (reindirizza a /chat)
+
+**Edge Cases & Error Handling:**
+*   Nessuna cronologia disponibile (nuovo utente): mostra empty state con messaggio incoraggiamento.
+*   Errore caricamento cronologia: mostra messaggio errore generico con retry button.
+*   Search query senza risultati: mostra messaggio "Nessun risultato trovato" con suggerimenti.
+*   Export fallisce: mostra toast errore con possibilità retry.
+*   Sessione non trovata (ID invalido): reindirizza a timeline con messaggio errore.
+
+**Responsive Considerations**:
+*   **Mobile**: Timeline a lista verticale singola colonna, search bar sticky top.
+*   **Tablet**: Timeline con preview più ampie, 2 colonne se landscape.
+*   **Desktop**: Timeline sidebar (30%) + SessionDetail main area (70%), split view.
+
+**Accessibility Requirements**:
+*   Timeline: Keyboard navigation (arrow keys), aria-live per "loading more".
+*   Search: autocomplete lista con aria-activedescendant per screen readers.
+*   SessionDetail: Skip links per navigare tra messaggi rapidamente.
+
+---
+
 ## Sezione 4: Wireframes & Mockups
 
 **Primary Design Files:** I design di dettaglio per l'interfaccia utente (mockup ad alta fedeltà e prototipi interattivi) saranno creati e mantenuti su Figma. Il link alla board di progetto è: `[Link a Figma da inserire]`

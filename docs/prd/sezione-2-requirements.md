@@ -10,6 +10,7 @@
 6.  **FR6**: Includere un meccanismo di feedback (👍/👎) per ogni risposta generata.
 7.  **FR7**: Dotare la chat di una memoria conversazionale a breve termine per mantenere il contesto delle ultime 2-3 interazioni all'interno di una singola sessione.
 8.  **FR8**: Il sistema deve informare l'utente quando non può rispondere perché la domanda esula dai contenuti della base di conoscenza.
+9.  **FR9**: Implementare persistenza memoria conversazionale long-term su database per mantenere storico completo sessioni anche dopo riavvio applicazione, con API per recupero e ricerca cronologia.
 
 ### Requisiti Non Funzionali (NFR)
 
@@ -23,4 +24,4 @@
 8.  **NFR8**: La sicurezza deve includere HTTPS, accesso limitato al backend e nessuna formazione del modello sui dati degli utenti.
 
 ---
-
+

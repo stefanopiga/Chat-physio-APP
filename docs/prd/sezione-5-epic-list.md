@@ -10,6 +10,11 @@
 ## Post-MVP Epics
 
 *   **Epic 4: Post-MVP Enhancements**: Arricchire l'esperienza amministrativa e didattica con strumenti di debug, analytics e ottimizzazione dei costi, migliorando la manutenibilità e l'efficacia del sistema.
+*   **Epic 5: Architecture Refactoring**: Refactoring struttura progetto per modularizzazione, separazione concerns e miglioramento maintainability codebase.
+*   **Epic 6: Documentation Pipeline Stabilization**: Implementazione watcher automatico per documenti, pipeline ingestion robusta e stabilizzazione sistema aggiornamenti knowledge base.
+*   **Epic 7: Enhanced RAG Experience**: Miglioramento esperienza conversazionale con prompt accademico strutturato, memoria SHORT-TERM (3 turni) e output LLM strutturato con citazioni.
+*   **Epic 8: Documentation & Developer Experience**: Consolidamento documentazione progetto, README unificato, esempi interazione chat e roadmap future evoluzioni.
+*   **Epic 9: Persistent Conversational Memory & Long-term Analytics**: Implementazione memoria conversazionale persistente long-term su database, API full history retrieval, UI cronologia sessioni e integrazione analytics avanzata.
 
 ---
 

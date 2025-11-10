@@ -1,4 +1,4 @@
-# FisioRAG
+# Chat-physio-APP
 
 Sistema RAG (Retrieval-Augmented Generation) per assistenza studenti di fisioterapia basato su documentazione scientifica e linee guida cliniche.
 
@@ -51,6 +51,16 @@ Deployment containerizzato orchestrato da **Docker Compose** con 5 servizi:
 - Configurato via variabili d'ambiente (SUPABASE_URL, SUPABASE_SERVICE_KEY)
 
 ## Quick Start
+
+### Esempi di Utilizzo
+
+Per esempi concreti di domande e interazioni efficaci con Physio RAG Chat, consulta **[CHAT_EXAMPLES.md](CHAT_EXAMPLES.md)**.
+
+Il documento include:
+- 11 domande di esempio categorizzate (Generali, Specifiche, Complesse)
+- Best practices per formulare query efficaci
+- Guidelines su cosa aspettarsi dal sistema
+- Disclaimer medico e limitazioni
 
 ### Prerequisiti
 
@@ -213,10 +223,13 @@ APPLICAZIONE/
 │       ├── tests/              # Test Vitest + Playwright
 │       ├── Dockerfile          # Multi-stage build Node 20 + Nginx
 │       └── package.json        # PNPM dependencies
-├── conoscenza/                 # Knowledge base documenti (escluso da git)
+├── ingestion/                  # Knowledge base documenti (escluso da git)
+│       ├── processed/          # documenti già processati
+│       └── watch/              # cartella in cui caricare i documenti da ingerire
 ├── docs/                       # Documentazione tecnica completa
 │   ├── architecture/           # Design e architettura
-│   ├── api/                    # Specifiche API OpenAPI
+│   ├── prd/                    # Product requirment document
+│   ├── stories/                # documenti di sviluppo del software
 │   ├── prd.md                  # Product Requirements Document
 │   └── front-end-spec.md       # Specifiche UI/UX
 ├── scripts/                    # Script operazionali
@@ -227,6 +240,7 @@ APPLICAZIONE/
 ├── .env.example                # Template variabili d'ambiente
 ├── docker-compose.yml          # Orchestrazione servizi production
 ├── docker-compose.dev.yml      # Orchestrazione servizi development
+├── README.md                   # Guida di configurazione e utilizzo del software
 └── ISTRUZIONI-USO-VARIABILI-AMBIENTE.md  # Guida configurazione .env
 ```
 
@@ -264,6 +278,16 @@ Ogni componente principale ha una README dedicata con setup e specifiche:
 - Deployment Docker → `apps/api/README.md` o `apps/web/README.md` (sezione Docker)
 - Database schema/migrations → `supabase/README.md`
 - CI/CD e testing → `docs/README.md` (sezione CI/CD)
+
+## Roadmap
+
+Per la visione a lungo termine del progetto e miglioramenti futuri pianificati, consultare **[ROADMAP.md](ROADMAP.md)**.
+
+Il documento include:
+- Short-term goals (0-3 mesi)
+- Mid-term goals (3-6 mesi)
+- Long-term vision (6-12+ mesi)
+- Backlog items non ancora prioritizzati
 
 ## Variabili d'Ambiente Richieste
 
@@ -413,4 +437,4 @@ docker exec physio-rag-api curl http://localhost:8000/health
 
 ## Contributors
 
-Sviluppato da Team FisioRAG
+Sviluppato da Stefano Borgato + BMAD Method

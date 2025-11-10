@@ -10,6 +10,9 @@ L'architettura sfrutta un approccio ibrido:
 *   **Endpoint Principali**:
 *   `POST /chat/sessions/{sessionId}/messages`: Invia un messaggio e ottiene una risposta RAG. Stato attuale: implementato con catena LCEL (ChatPromptTemplate | ChatOpenAI | PydanticOutputParser). Output include `citations` arricchite per popover (`chunk_id`, `document_id`, `excerpt`, `position`). [Story 3.4]
     *   `POST /chat/messages/{messageId}/feedback`: Invia un feedback su un messaggio. Body `{ sessionId: string, vote: 'up'|'down' }`, risposta `{ ok: boolean }`. [Story 3.4]
+    *   `GET /chat/sessions/{sessionId}/history/full`: Recupera storico completo conversazione con pagination. Query params: `limit` (default 100, max 500), `offset`. Response include `messages[]`, `total_count`, `has_more`. JWT required. [Epic 9 - Story 9.2]
+    *   `GET /chat/sessions/search`: Full-text search su conversazioni archiviate. Query params: `query` (keywords), `date_from`, `date_to`, `limit`, `offset`. Response include `matches[]` con excerpt highlight e `relevance_score`. Italian language stemming. JWT required. [Epic 9 - Story 9.2]
+    *   `DELETE /chat/sessions/{sessionId}/archive`: Archivia sessione (soft delete default) o DELETE permanente (admin only). Query param: `permanent` (boolean, default false). JWT required. [Epic 9 - Story 9.2]
     *   `POST /admin/knowledge-base/sync-jobs`: Avvia un processo di sincronizzazione.
     *   `GET /admin/knowledge-base/sync-jobs/{jobId}`: Controlla lo stato di un processo.
     *   `GET /health`: Endpoint pubblico per il monitoraggio dell'uptime.

@@ -17,10 +17,13 @@
 Guide operative e riferimenti implementativi per componenti specifici:
 
 ### Backend
-- [Addendum: Pydantic Settings Configuration](addendum-pydantic-settings-configuration.md) â€” Guida completa configuration management: BaseSettings, validators, SecretStr, custom sources (Story 2.12)
-- [Addendum: FastAPI Best Practices](addendum-fastapi-best-practices.md) â€” Pattern implementativi per endpoint sicuri e performanti (Story 4.1)
-- [Addendum: LangChain RAG Debug Patterns](addendum-langchain-rag-debug-patterns.md) â€” Accesso risultati intermedi RAG con scores e timing (Story 4.1)
-- [Addendum: Enhanced Document Extraction](addendum-enhanced-document-extraction.md) â€” PyMuPDF, python-docx, pdfplumber, tenacity per extraction avanzata immagini/tabelle (Story 2.5)
+- [Addendum: Pydantic Settings Configuration](addendum-pydantic-settings-configuration.md) â€" Guida completa configuration management: BaseSettings, validators, SecretStr, custom sources (Story 2.12)
+- [Addendum: FastAPI Best Practices](addendum-fastapi-best-practices.md) â€" Pattern implementativi per endpoint sicuri e performanti (Story 4.1)
+- [Addendum: LangChain RAG Debug Patterns](addendum-langchain-rag-debug-patterns.md) â€" Accesso risultati intermedi RAG con scores e timing (Story 4.1)
+- [Addendum: Enhanced Document Extraction](addendum-enhanced-document-extraction.md) â€" PyMuPDF, python-docx, pdfplumber, tenacity per extraction avanzata immagini/tabelle (Story 2.5)
+- [Addendum: Conversational Memory Patterns](addendum-conversational-memory-patterns.md) â€" SHORT-TERM in-memory conversational memory implementation (Story 7.1)
+- [Addendum: Persistent Conversational Memory](addendum-persistent-conversational-memory.md) â€" Hybrid memory architecture: L1 cache + L2 database persistence for long-term history (Epic 9)
+- [Addendum: Technical References Epic 9](addendum-technical-references-epic9.md) â€" **Riferimenti tecnici ufficiali**: asyncpg, aiofiles, Circuit Breaker, Durable Outbox, PostgreSQL FTS Italian, Partial Indices (Epic 9)
 - [Ingestion Pipelines Comparison](ingestion-pipelines-comparison.md) - Confronto pipeline Watcher automatica vs API Sync Jobs manuale, capability matrix e SLO (Story 6.1)
 
 ### Authentication & Access Control

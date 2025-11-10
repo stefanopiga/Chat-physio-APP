@@ -19,10 +19,15 @@
 ### 4.5 Modello: `ChatMessage`
 *   **Scopo:** Memorizza un singolo messaggio di una conversazione.
 *   **Attributi Chiave:** `id` (UUID), `session_id` (string), `role` (string), `content` (text), `source_chunk_ids` (array of UUIDs, nullable), `metadata` (jsonb, nullable), `created_at` (timestamp).
+*   **Indici (Epic 9 - Persistent Memory)**:
+    *   `idx_chat_messages_session_created`: Index on `(session_id, created_at DESC)` per query cronologiche sessione
+    *   `idx_chat_messages_created_at`: Index on `(created_at DESC)` per analytics temporali
+    *   `idx_chat_messages_content_fts`: GIN index on `to_tsvector('italian', content)` per full-text search
+    *   `idx_chat_messages_metadata_archived`: Partial index on `(metadata->>'archived')` per filtrare sessioni archiviate
 
 ### 4.6 Modello: `Feedback`
 *   **Scopo:** Registra il feedback (👍/👎) su una risposta.
 *   **Attributi Chiave:** `id` (UUID), `chat_message_id` (UUID, FK to ChatMessage), `rating` (string), `created_at` (timestamp).
 
 ---
-
+

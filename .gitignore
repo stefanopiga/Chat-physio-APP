@@ -17,11 +17,11 @@ temp_env_*
 
 #repository .bmad-core e cursor rules e files vari
 ARCO.md
-.bmad-core/
 .cursor/
+.bmad-core/
 /bmad-method
 /filesMD
-
+/screenShot
 #/docs
 
 

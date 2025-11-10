@@ -1,4 +1,4 @@
-# FisioRAG Operational Scripts
+# Chat-physio-APP Operational Scripts
 
 Directory contenente script operativi per amministrazione, ingestion e maintenance.
 
