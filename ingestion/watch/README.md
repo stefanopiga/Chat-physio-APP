@@ -6,4 +6,8 @@ qui trovi una cartella 'fisioterapia' che ho usato come radice del materiale da 
 il comando da eseguire per avviare l'ingestione è : 
 
 
+```bash
+#ingestione documenti
 docker compose exec api python scripts/watcher_runner.py
+
+```

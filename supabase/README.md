@@ -197,13 +197,16 @@ accedi alla dashboard supabase, poi
     Click Create user
       Dopo creazione, click sull'utente → tab User Metadata
       Aggiungi metadato:
+        ```
         {
           "role": "admin"
         }
-      
-        quindi esegui questa query, sostituisci [ID] con UID dello user appena creato (simile a --> t755b261-4465-71k7-6gu5-054f2r0a3e3da): 
-
-          UPDATE auth.users SET raw_app_meta_data = jsonb_set(coalesce(raw_app_meta_data, '{}'::jsonb), '{role}', '"admin"') WHERE id = '[ID]';
+        ```bash
+          quindi esegui questa query, sostituisci [ID] con UID dello user appena creato (simile a --> t755b261-4465-71k7-6gu5-054f2r0a3e3da): 
+        ```
+        ```bash
+          UPDATE auth.users SET raw_app_meta_data = jsonb_set(coalesce(raw_app_meta_data, '{}'::jsonb), '{role}', '"admin"') WHERE id = '[ID]'
+        ```
       poi verifica con questa query: SELECT id, email, raw_app_meta_data FROM auth.users WHERE id = '[ID]';
     
     Ora aggiorna il file .env nella root alla voce 'ADMIN_EMAIL' e 'ADMIN_PSSWD'
