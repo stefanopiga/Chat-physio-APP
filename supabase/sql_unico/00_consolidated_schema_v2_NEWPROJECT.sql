@@ -15,11 +15,12 @@
 --
 -- Tables: 6 (documents, document_chunks, student_tokens, refresh_tokens, users, feedback)
 -- Indexes: HNSW vector indexes included
--- Functions: 4 public (match_document_chunks, update triggers)
+-- Functions: 5 public (match_document_chunks, update triggers, auth sync)
 -- RLS: Enabled for feedback, refresh_tokens, student_tokens, users
 -- NOTE: RLS NOT enabled for documents/document_chunks (intentional)
 -- Grants: service_role permissions included
 -- Extension: PGVector explicitly enabled for embeddings
+-- Auto-Sync: auth.users → public.users (trigger automatico)
 -- ============================================
 
 SET statement_timeout = 0;
@@ -234,6 +235,49 @@ CREATE TABLE IF NOT EXISTS "public"."users" (
 
 
 ALTER TABLE "public"."users" OWNER TO "postgres";
+
+
+-- ============================================
+-- AUTO-SYNC: auth.users → public.users
+-- ============================================
+-- Mantiene sincronizzati auth.users (Supabase Auth) e public.users (mirror applicativo)
+-- Trigger automatico su INSERT/UPDATE di nuovi utenti Auth
+-- Safe per nuovi progetti: usa ON CONFLICT per evitare duplicati
+
+CREATE OR REPLACE FUNCTION "public"."sync_auth_user_to_public"()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public, auth
+AS $$
+BEGIN
+    INSERT INTO public.users (id, email, role, created_at, updated_at)
+    VALUES (
+        NEW.id,
+        NEW.email,
+        COALESCE(NEW.raw_app_meta_data->>'role', 'authenticated'),
+        NEW.created_at,
+        NEW.updated_at
+    )
+    ON CONFLICT (id) 
+    DO UPDATE SET
+        email = EXCLUDED.email,
+        role = COALESCE(NEW.raw_app_meta_data->>'role', 'authenticated'),
+        updated_at = NEW.updated_at;
+    
+    RETURN NEW;
+END;
+$$;
+
+ALTER FUNCTION "public"."sync_auth_user_to_public"() OWNER TO "postgres";
+
+-- Trigger su INSERT/UPDATE in auth.users
+CREATE TRIGGER "sync_auth_user_trigger"
+AFTER INSERT OR UPDATE ON "auth"."users"
+FOR EACH ROW
+EXECUTE FUNCTION "public"."sync_auth_user_to_public"();
+
+-- ============================================
 
 
 ALTER TABLE ONLY "public"."document_chunks"
