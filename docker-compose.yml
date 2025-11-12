@@ -1,6 +1,5 @@
 services:
   proxy:
-    container_name: physio-rag-proxy
     image: traefik:v3.1
     command:
       - "--api.insecure=true"
@@ -16,7 +15,6 @@ services:
       - physio-rag-net
 
   api:
-    container_name: physio-rag-api
     build:
       context: .
       dockerfile: ./apps/api/Dockerfile
@@ -25,6 +23,8 @@ services:
     volumes:
       - ./apps/api/api:/app/api
       - ./apps/api/tests:/app/tests
+      - ./apps/api/scripts:/app/scripts
+      - ./ingestion:/ingestion
       # Story 7.2: Model cache volume for sentence-transformers
       - model_cache:/app/.cache/torch/sentence_transformers
     environment:
@@ -66,13 +66,14 @@ services:
       - redis
 
   celery-worker:
-    container_name: physio-rag-celery-worker
     build:
       context: .
       dockerfile: ./apps/api/Dockerfile
     command: celery -A api.celery_app:celery_app worker --loglevel=INFO
     volumes:
       - ./apps/api/api:/app/api
+      - ./apps/api/scripts:/app/scripts
+      - ./ingestion:/ingestion
       # Story 7.2: Model cache shared con api service
       - model_cache:/app/.cache/torch/sentence_transformers
     env_file:
@@ -95,7 +96,6 @@ services:
 
   redis:
     image: redis:alpine
-    container_name: physio-rag-redis
     # Story 2.6.1: Redis persistence configured for production
     # - AOF enabled for data durability
     # - Named volume prevents data loss on container restart
@@ -106,7 +106,6 @@ services:
       - physio-rag-net
 
   web:
-    container_name: physio-rag-web
     build:
       context: .
       dockerfile: ./apps/web/Dockerfile

@@ -183,6 +183,31 @@ brew install supabase/tap/supabase
 
 ---
 
+
+**Step 2: Creazione User con ruolo Admin**
+
+
+accedi alla dashboard supabase, poi
+
+  Authentication → Users → Add user → Create new user
+    Compila:
+      Email: tizio-caio@example.com 
+      Password: [valore password]
+      Auto Confirm User: ✅ attiva (importante!)
+    Click Create user
+      Dopo creazione, click sull'utente → tab User Metadata
+      Aggiungi metadato:
+        {
+          "role": "admin"
+        }
+      
+        quindi esegui questa query, sostituisci [ID] con UID dello user appena creato (simile a --> t755b261-4465-71k7-6gu5-054f2r0a3e3da): 
+
+          UPDATE auth.users SET raw_app_meta_data = jsonb_set(coalesce(raw_app_meta_data, '{}'::jsonb), '{role}', '"admin"') WHERE id = '[ID]';
+      poi verifica con questa query: SELECT id, email, raw_app_meta_data FROM auth.users WHERE id = '[ID]';
+    
+    Ora aggiorna il file .env nella root alla voce 'ADMIN_EMAIL' e 'ADMIN_PSSWD'
+
 ## 📦 Setup Database Schema
 
 Dopo aver creato il progetto Supabase Cloud, applicare lo schema database.
@@ -248,23 +273,21 @@ Dopo aver creato il progetto Supabase Cloud, applicare lo schema database.
 
 ### Metodo 1: Schema Consolidato via Dashboard (Raccomandato) ✅
 
-#### 🆕 Per Nuovi Progetti Supabase
-
-**File**: [`sql_unico/00_consolidated_schema_v2_NEWPROJECT.sql`](./sql_unico/00_consolidated_schema_v2_NEWPROJECT.sql) ⭐ **USA QUESTO**
+**File**: [`sql_unico/00_consolidated_schema_v2_VERIFIED.sql`](./sql_unico/00_consolidated_schema_v2_VERIFIED.sql)
 
 **Caratteristiche**:
-- ✅ Versione pulita per progetti Supabase vuoti (risolve errore ownership)
-- ✅ Generato da production database (2025-11-11)
-- ✅ Include: 6 tabelle, indici HNSW, 4 funzioni, RLS policies, GRANT
-- ✅ Schema-only: nessun dato incluso
-- ⚠️ Funzioni extensions rimossi (auto-gestite da Supabase)
+- ✅ Generato tramite reverse engineering da database production (2025-11-11)
+- ✅ Schema validato e testato con Supabase CLI 2.58.5
+- ✅ Include tutte le tabelle (6), indici HNSW, funzioni, trigger, RLS policies, GRANT
+- ✅ Garantito identico al database production funzionante
+- ✅ Schema-only: nessun dato incluso (validato)
 
 **Applicazione via Dashboard:**
 
-1. Accedi a **Supabase Dashboard** → tuo progetto **NUOVO**
+1. Accedi a **Supabase Dashboard** → tuo progetto
 2. Vai su **SQL Editor** (icona database nel menu laterale)
-3. Apri il file [`sql_unico/00_consolidated_schema_v2_NEWPROJECT.sql`](./sql_unico/00_consolidated_schema_v2_NEWPROJECT.sql)
-4. Copia **tutto il contenuto** del file (494 righe)
+3. Apri il file [`sql_unico/00_consolidated_schema_TEMP.sql`](./sql_unico/00_consolidated_schema_TEMP.sql)
+4. Copia **tutto il contenuto** del file (772 righe)
 5. Incolla nell'SQL Editor
 6. Click **Run** (o Ctrl+Enter)
 7. Attendi messaggio di successo (~10-15 secondi)
@@ -1357,6 +1380,9 @@ Usa questa checklist per verificare setup corretto:
   - [ ] CLI installato via Scoop
   - [ ] Login eseguito: `supabase login`
   - [ ] Progetto linkato: `supabase link --project-ref <ref>`
+
+- [ ] **Creazione User con ruolo di Admin**
+  - [ ] Creazione User + sql query + di verifica
 
 - [ ] **Test connessione**
   - [ ] CLI inspect funzionante: `supabase inspect db table-stats --db-url "...5432..."`
