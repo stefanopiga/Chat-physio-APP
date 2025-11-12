@@ -276,10 +276,11 @@ Dopo aver creato il progetto Supabase Cloud, applicare lo schema database.
 
 ### Metodo 1: Schema Consolidato via Dashboard (Raccomandato) ✅
 
-**File**: [`sql_unico/00_consolidated_schema_v2_VERIFIED.sql`](./sql_unico/00_consolidated_schema_v2_VERIFIED.sql)
+**File**: [`sql_unico/00_consolidated_schema_v2_NEWPROJECT.sql`](./sql_unico/00_consolidated_schema_v2_NEWPROJECT.sql)
 
 **Caratteristiche**:
 - ✅ Generato tramite reverse engineering da database production (2025-11-11)
+- ✅ Ottimizzato per nuovi progetti Supabase (funzioni extensions rimosse)
 - ✅ Schema validato e testato con Supabase CLI 2.58.5
 - ✅ Include tutte le tabelle (6), indici HNSW, funzioni, trigger, RLS policies, GRANT
 - ✅ Garantito identico al database production funzionante
@@ -289,8 +290,8 @@ Dopo aver creato il progetto Supabase Cloud, applicare lo schema database.
 
 1. Accedi a **Supabase Dashboard** → tuo progetto
 2. Vai su **SQL Editor** (icona database nel menu laterale)
-3. Apri il file [`sql_unico/00_consolidated_schema_TEMP.sql`](./sql_unico/00_consolidated_schema_TEMP.sql)
-4. Copia **tutto il contenuto** del file (772 righe)
+3. Apri il file [`sql_unico/00_consolidated_schema_v2_NEWPROJECT.sql`](./sql_unico/00_consolidated_schema_v2_NEWPROJECT.sql)
+4. Copia **tutto il contenuto** del file (494 righe)
 5. Incolla nell'SQL Editor
 6. Click **Run** (o Ctrl+Enter)
 7. Attendi messaggio di successo (~10-15 secondi)
@@ -345,7 +346,7 @@ scoop install postgresql
 psql --version
 
 # Applicare schema consolidato
-psql "postgresql://postgres.<project-ref>:[PASSWORD]@aws-1-eu-central-2.pooler.supabase.com:5432/postgres" -f supabase/sql_unico/00_consolidated_schema.sql
+psql "postgresql://postgres.<project-ref>:[PASSWORD]@aws-1-eu-central-2.pooler.supabase.com:5432/postgres" -f supabase/sql_unico/00_consolidated_schema_v2_NEWPROJECT.sql
 ```
 
 **⚠️ IMPORTANTE**: Per comandi CLI `db push` e `psql`, usare **direct connection** (porta 5432), non pooled (6543).
@@ -907,7 +908,7 @@ Oppure aggiungi a `.env` nella root del progetto (caricato automaticamente da mo
 
 # 3. Applica schema via Dashboard SQL Editor
 # → Dashboard → SQL Editor
-# → Copia contenuto di supabase/sql_unico/00_consolidated_schema.sql
+# → Copia contenuto di supabase/sql_unico/00_consolidated_schema_v2_NEWPROJECT.sql
 # → Run
 
 # 4. Verifica setup
