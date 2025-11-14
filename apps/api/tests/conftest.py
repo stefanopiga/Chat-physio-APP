@@ -9,6 +9,7 @@ Questo file configura:
 """
 import os
 import sys
+import unittest.mock as mock
 from pathlib import Path
 import pytest
 from dotenv import load_dotenv
@@ -26,7 +27,6 @@ if str(ROOT_DIR) not in sys.path:
     sys.path.insert(0, str(ROOT_DIR))
 
 # Mock langchain imports per risolvere incompatibilità Pydantic 2.11
-import unittest.mock as mock
 sys.modules['langchain_openai'] = mock.MagicMock()
 sys.modules['langchain_core'] = mock.MagicMock()
 sys.modules['langchain_core.language_models'] = mock.MagicMock()

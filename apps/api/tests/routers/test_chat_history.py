@@ -3,7 +3,6 @@ Unit tests per GET /api/v1/chat/sessions/{sessionId}/history/full endpoint.
 
 Story 9.2 Task 1.5: Backend endpoint testing con mock persistence service.
 """
-import pytest
 from datetime import datetime, timezone
 from unittest.mock import AsyncMock, MagicMock, patch
 

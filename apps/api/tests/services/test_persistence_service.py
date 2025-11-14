@@ -12,7 +12,7 @@ Target: 80%+ coverage
 """
 import pytest
 from datetime import datetime, timezone
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock
 from uuid import UUID
 
 from api.models.conversation import ConversationMessage

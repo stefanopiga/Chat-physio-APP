@@ -14,8 +14,8 @@ Reference: docs/architecture/addendum-persistent-conversational-memory.md
 import logging
 import hashlib
 import json
-from datetime import datetime, timezone
-from typing import List, Optional
+from datetime import datetime
+from typing import List
 from uuid import UUID
 
 import asyncpg
