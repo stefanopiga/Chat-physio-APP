@@ -1,0 +1,20 @@
+﻿schema: 1
+story: '9.2'
+gate: CONCERNS
+status_reason: 'Medium risk profile; pagination correctness and performance concerns.'
+reviewer: 'Quinn'
+updated: '2025-11-12T19:25:14Z'
+top_issues:
+  - id: 'TECH-001'
+    severity: medium
+    finding: 'Potential pagination/ordering bugs with LIMIT/OFFSET'
+    suggested_action: 'Add tests for >100 msgs; consider keyset pagination'
+  - id: 'PERF-001'
+    severity: medium
+    finding: 'Rendering performance for long histories without virtualization'
+    suggested_action: 'Enable virtual scroll >50 messages; measure paint times'
+  - id: 'DATA-001'
+    severity: medium
+    finding: 'Missing/duplicate messages due to offset drift during pagination'
+    suggested_action: 'Dedupe by id on append; enforce stable sort keys'
+waiver: { active: false }

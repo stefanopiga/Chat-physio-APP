@@ -32,6 +32,10 @@ services:
       - CELERY_ENABLED=true
       - CELERY_BROKER_URL=redis://redis:6379/0
       - CELERY_RESULT_BACKEND=redis://redis:6379/0
+      # Story 7.1 & 9.2: CRITICAL - Enable conversational memory to save messages
+      - ENABLE_CONVERSATIONAL_MEMORY=${ENABLE_CONVERSATIONAL_MEMORY:-true}
+      # Story 9.2: Persistent memory feature flag (default true)
+      - ENABLE_PERSISTENT_MEMORY=${ENABLE_PERSISTENT_MEMORY:-true}
       # Story 7.2: Feature flags (override in .env if needed)
       - ENABLE_CROSS_ENCODER_RERANKING=${ENABLE_CROSS_ENCODER_RERANKING:-false}
       - ENABLE_DYNAMIC_MATCH_COUNT=${ENABLE_DYNAMIC_MATCH_COUNT:-false}
@@ -82,6 +86,10 @@ services:
       - PYTHONUNBUFFERED=1
       - CELERY_BROKER_URL=redis://redis:6379/0
       - CELERY_RESULT_BACKEND=redis://redis:6379/0
+      # Story 7.1 & 9.2: CRITICAL - Enable conversational memory (sync con api service)
+      - ENABLE_CONVERSATIONAL_MEMORY=${ENABLE_CONVERSATIONAL_MEMORY:-true}
+      # Story 9.2: Persistent memory (sync con api service)
+      - ENABLE_PERSISTENT_MEMORY=${ENABLE_PERSISTENT_MEMORY:-true}
       # Story 7.2: Feature flags (sync con api service)
       - ENABLE_CROSS_ENCODER_RERANKING=${ENABLE_CROSS_ENCODER_RERANKING:-false}
       - ENABLE_DYNAMIC_MATCH_COUNT=${ENABLE_DYNAMIC_MATCH_COUNT:-false}
@@ -109,6 +117,9 @@ services:
     build:
       context: .
       dockerfile: ./apps/web/Dockerfile
+      args:
+        # Story 9.2: Enable persistent memory in frontend (default true)
+        VITE_ENABLE_PERSISTENT_MEMORY: "true"
     volumes:
       - ./apps/web:/app
       # Nota: questo volume è utile solo con un dev-server (Vite). Con l'attuale Dockerfile basato su Nginx,

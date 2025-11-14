@@ -110,3 +110,21 @@ class ChatResponse(BaseModel):
     answer: str
     session_id: str
     sources: Optional[list[dict]] = None
+
+
+# Story 9.2: Session History Retrieval
+class ConversationMessage(BaseModel):
+    """Message in session history."""
+    id: str
+    role: Literal["user", "assistant"]
+    content: str
+    source_chunk_ids: Optional[list[str]] = None
+    metadata: dict = Field(default_factory=dict)
+    created_at: str
+
+
+class SessionHistoryResponse(BaseModel):
+    """Response per GET session history con pagination."""
+    messages: list[ConversationMessage]
+    total_count: int
+    has_more: bool

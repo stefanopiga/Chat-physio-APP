@@ -189,6 +189,12 @@ class Settings(BaseSettings):
         description="Story 7.1: Maximum character length for compacted older messages",
     )
     
+    # Story 9.1: Persistent Conversational Memory
+    enable_persistent_memory: bool = Field(
+        default=False,
+        description="Story 9.1 AC3: Enable long-term conversation memory persistence to database (L2 storage)",
+    )
+    
     # Story 7.2: Advanced Retrieval Optimization feature flags
     enable_cross_encoder_reranking: bool = Field(
         default=False,

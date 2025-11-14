@@ -391,6 +391,8 @@ def insert_chunks_to_vectorstore(
 
 Quando si processano grandi volumi di dati, implementare retry logic:
 
+**Tech Reference**: Per pattern retry avanzati con `node-retry` library, gestione `Retry-After` header, configurazione backoff esponenziale, e best practices, consultare [`docs/tech-reference/03-exponential-backoff.md`](../tech-reference/03-exponential-backoff.md).
+
 ```python
 import time
 from typing import List, Dict, Any

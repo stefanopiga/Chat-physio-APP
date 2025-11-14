@@ -22,6 +22,7 @@
         - **Ambito**: Applicato a `POST /admin/knowledge-base/sync-jobs`, `GET /admin/knowledge-base/sync-jobs/{jobId}` e `POST /chat/query`. Testato con scenario negativo 429 su `/api/v1/chat/query`. [Fonti: `apps/api/tests/test_chat_query.py`]
         - **Note di implementazione**: Enforcement lato API Gateway/Reverse Proxy (es. NGINX `limit_req`) e/o middleware applicativo. Loggare eventi di throttling per monitoraggio.
         - **Riferimento**: Necessità emersa nell'NFR Assessment della Story 2.4 (`docs/qa/assessments/2.4-nfr-20250923.md`).
+        - **Tech Reference**: Per implementazione dettagliata con slowapi, storage backends (Redis/Memory), decorator patterns, testing e best practices production, consultare [`docs/tech-reference/04-rate-limiting-backend.md`](../tech-reference/04-rate-limiting-backend.md).
 *   **Performance**:
     *   **Frontend**: Implementazione di una strategia di ottimizzazione completa che include: **code splitting** per route, **lazy loading** per componenti non critici, **virtualizzazione** per la lista dei messaggi della chat e **compressione delle immagini** (se applicabile).
     *   **Backend**: Query del database ottimizzate con indici vettoriali, esecuzione asincrona. Per `/chat/query`, target p95 < 500ms (vedi Story 3.1 NFR).

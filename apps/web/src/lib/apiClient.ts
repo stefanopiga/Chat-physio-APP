@@ -23,6 +23,21 @@ export type SendMessageResponse = {
   generation_time_ms?: number | null;
 };
 
+export type ConversationMessage = {
+  id: string;
+  role: "user" | "assistant";
+  content: string;
+  source_chunk_ids?: string[];
+  metadata: Record<string, unknown>;
+  created_at: string;
+};
+
+export type SessionHistoryResponse = {
+  messages: ConversationMessage[];
+  total_count: number;
+  has_more: boolean;
+};
+
 const API_BASE = "/api/v1";
 
 // In-memory storage for access token (alternativa a sessionStorage per student tokens)
@@ -219,6 +234,109 @@ const apiClient = {
         generation_time_ms: number;
       }
     >(endpoint, payload);
+  },
+
+  async getSessionHistory(
+    sessionId: string,
+    limit: number = 100,
+    offset: number = 0
+  ): Promise<SessionHistoryResponse> {
+    const endpoint = `${API_BASE}/chat/sessions/${sessionId}/history/full?limit=${limit}&offset=${offset}`;
+
+    const attemptFetch = async (
+      attemptNumber: number
+    ): Promise<SessionHistoryResponse> => {
+      let response: Response | undefined;
+
+      try {
+        const token = await getAccessToken();
+        response = await fetch(endpoint, {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        });
+      } catch (error) {
+        // Network errors - retry with exponential backoff
+        if (
+          error instanceof TypeError &&
+          attemptNumber < 3
+        ) {
+          const delay = Math.pow(2, attemptNumber) * 1000; // 1s, 2s, 4s
+          console.warn(`Network error, retrying after ${delay / 1000}s`);
+          await new Promise((resolve) => setTimeout(resolve, delay));
+          return attemptFetch(attemptNumber + 1);
+        }
+
+        throw error;
+      }
+
+      // Guard: if response is undefined after catch, re-throw error
+      if (!response) {
+        throw new Error("Network request failed after retries");
+      }
+
+      // Handle 404 - nuova sessione, return empty
+      if (response.status === 404) {
+        return { messages: [], total_count: 0, has_more: false };
+      }
+
+      // Handle 401 - try refresh token once
+      if (response.status === 401) {
+        const newToken = await refreshAccessToken();
+        if (newToken) {
+          const retryResponse = await fetch(endpoint, {
+            method: "GET",
+            headers: {
+              Authorization: `Bearer ${newToken}`,
+              "Content-Type": "application/json",
+            },
+          });
+
+          if (retryResponse.status === 404) {
+            return { messages: [], total_count: 0, has_more: false };
+          }
+
+          if (!retryResponse.ok) {
+            throw new Error(`HTTP ${retryResponse.status}`);
+          }
+
+          return (await retryResponse.json()) as SessionHistoryResponse;
+        } else {
+          // Refresh failed, redirect to login
+          window.location.href = "/";
+          throw new Error("Unauthorized");
+        }
+      }
+
+      // Handle 429 - rate limit, retry with exponential backoff
+      if (response.status === 429) {
+        const retryAfterHeader = response.headers.get("Retry-After");
+        const retryAfter = retryAfterHeader
+          ? parseInt(retryAfterHeader, 10) * 1000
+          : Math.pow(2, attemptNumber) * 1000; // 1s, 2s, 4s
+
+        if (attemptNumber < 3) {
+          console.warn(
+            `Rate limit exceeded, retrying after ${retryAfter / 1000}s`
+          );
+          await new Promise((resolve) => setTimeout(resolve, retryAfter));
+          return attemptFetch(attemptNumber + 1);
+        }
+
+        throw new Error("429");
+      }
+
+      // Handle other errors
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${await response.text()}`);
+      }
+
+      return (await response.json()) as SessionHistoryResponse;
+    };
+
+    return attemptFetch(0);
   },
 };
 

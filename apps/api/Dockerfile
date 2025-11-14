@@ -45,12 +45,17 @@ COPY apps/api/pyproject.toml apps/api/poetry.lock ./
 
 # Story 7.2: Pre-install torch to prevent network timeouts during poetry install
 # Using official CPU-only wheel for smaller image size and better stability in CI/CD.
-RUN pip install torch --index-url https://download.pytorch.org/whl/cpu
+# Story 9.2 Fix: Timeout esteso (600s) + 3 retry per connessioni lente
+RUN pip install --timeout=600 --retries=3 torch --index-url https://download.pytorch.org/whl/cpu
 
 # Install dependencies with Poetry
 # - --no-root: don't install the project itself (just dependencies)
 # - --only main: skip dev dependencies
-RUN poetry install --no-root --only main
+# Story 9.2 Fix: Configura pip timeout 600s + 3 retry, Poetry max-workers 10
+RUN pip config set global.timeout 600 && \
+    pip config set global.retries 3 && \
+    poetry config installer.max-workers 10 && \
+    poetry install --no-root --only main
 
 # ============================================================================
 # Stage 2: Runtime - Lightweight production image

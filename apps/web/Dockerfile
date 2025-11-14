@@ -20,6 +20,10 @@ COPY apps/web/ .
 ARG VITE_API_BASE_URL=""
 ENV VITE_API_BASE_URL=${VITE_API_BASE_URL}
 
+# Story 9.2: Feature flag per persistent memory (default true)
+ARG VITE_ENABLE_PERSISTENT_MEMORY="true"
+ENV VITE_ENABLE_PERSISTENT_MEMORY=${VITE_ENABLE_PERSISTENT_MEMORY}
+
 # Esegui la build di produzione
 RUN pnpm run build
 

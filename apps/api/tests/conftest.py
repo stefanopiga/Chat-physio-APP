@@ -25,6 +25,20 @@ ROOT_DIR = Path(__file__).resolve().parents[1]
 if str(ROOT_DIR) not in sys.path:
     sys.path.insert(0, str(ROOT_DIR))
 
+# Mock langchain imports per risolvere incompatibilità Pydantic 2.11
+import unittest.mock as mock
+sys.modules['langchain_openai'] = mock.MagicMock()
+sys.modules['langchain_core'] = mock.MagicMock()
+sys.modules['langchain_core.language_models'] = mock.MagicMock()
+sys.modules['langchain_core.prompts'] = mock.MagicMock()
+sys.modules['langchain_core.output_parsers'] = mock.MagicMock()
+sys.modules['langchain_core.runnables'] = mock.MagicMock()
+sys.modules['langchain_core.messages'] = mock.MagicMock()
+sys.modules['langchain_community'] = mock.MagicMock()
+sys.modules['langchain_community.document_loaders'] = mock.MagicMock()
+sys.modules['langchain_community.vectorstores'] = mock.MagicMock()
+sys.modules['langchain_text_splitters'] = mock.MagicMock()
+
 if test_env_local.exists():
     load_dotenv(test_env_local, override=True)
     print(f"[OK] Loaded test environment from: {test_env_local}")

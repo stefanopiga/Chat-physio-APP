@@ -88,15 +88,34 @@ Copy-Item .env.example .env
 
 ```bash
 # Bash
-cp .env.example .env
+echo "ENABLE_PERSISTENT_MEMORY=false" > .env
 ```
 
-Modificare `.env` con:
-- Credenziali Supabase (URL, Service Key, JWT Secret)
-- OpenAI API Key
-- Feature flags opzionali (vedi sezione sotto)
+**⚠️ CRITICO PER NUOVI UTENTI:** Il progetto richiede configurazione feature flags prima del primo avvio.
 
-**Consultare [ISTRUZIONI-USO-VARIABILI-AMBIENTE.md](ISTRUZIONI-USO-VARIABILI-AMBIENTE.md) per la guida completa.**
+**Configurazione minima per test senza database:**
+
+```bash
+# .env
+ENABLE_PERSISTENT_MEMORY=false
+ENABLE_CROSS_ENCODER_RERANKING=false
+ENABLE_DYNAMIC_MATCH_COUNT=false
+ENABLE_CHUNK_DIVERSIFICATION=false
+```
+
+**Configurazione production (richiede PostgreSQL configurato):**
+
+```bash
+# .env
+ENABLE_PERSISTENT_MEMORY=true  # ⚠️ Requires database
+# + Credenziali Supabase (URL, Service Key, JWT Secret)
+# + OpenAI API Key
+# + Altri feature flags opzionali
+```
+
+**Documentazione completa configurazione:**
+- **Feature Flags & Database Prerequisites**: [docs/deployment/environment-variables.md](docs/deployment/environment-variables.md)
+- **Advanced RAG Tuning**: [ISTRUZIONI-USO-VARIABILI-AMBIENTE.md](ISTRUZIONI-USO-VARIABILI-AMBIENTE.md)
 
 3. **Avviare i servizi**
 
@@ -320,6 +339,32 @@ ENABLE_CHUNK_DIVERSIFICATION=false
 **Nota**: Il file `.env.example` contiene 60+ variabili con valori di default e documentazione inline.
 
 ## Troubleshooting
+
+### Storico chat non viene salvato/caricato
+
+Se lo storico della chat si azzera dopo navigazione o riavvio:
+
+1. **Verificare feature flags in `.env`**:
+   ```bash
+   # CRITICO: Entrambi i flag devono essere true
+   ENABLE_CONVERSATIONAL_MEMORY=true  # Salva messaggi
+   ENABLE_PERSISTENT_MEMORY=true       # Persiste in DB
+   ```
+
+2. **Riavviare container con rebuild**:
+   ```bash
+   docker compose down
+   docker compose up --build -d
+   ```
+
+3. **Verificare logs backend per errori persistence**:
+   ```bash
+   docker compose logs api | grep -i "persist\|conversation"
+   ```
+
+**Root Cause**: Se `ENABLE_CONVERSATIONAL_MEMORY` è false (default in config.py), backend non salva messaggi anche se `ENABLE_PERSISTENT_MEMORY` è true.
+
+**Riferimento**: docs/deployment/environment-variables.md
 
 ### Porta 80 occupata (Windows)
 

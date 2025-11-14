@@ -1192,6 +1192,8 @@ async def admin_debug_query(
 
 **Soluzione**: Decorator rate limiting con storage in-memory (MVP) o Redis (production).
 
+**Tech Reference**: Per implementazione completa con slowapi, storage backends (Redis/Memory), decorator patterns avanzati, e best practices production, consultare [`docs/tech-reference/04-rate-limiting-backend.md`](../tech-reference/04-rate-limiting-backend.md).
+
 ```python
 from datetime import datetime, timedelta
 from typing import Callable

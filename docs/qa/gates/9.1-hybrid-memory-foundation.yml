@@ -1,0 +1,48 @@
+schema: 1
+story: '9.1'
+story_title: 'Hybrid Memory Foundation'
+gate: CONCERNS
+status_reason: 'Solid architecture with resilience/observability; pending CI-verified indices, coverage ≥80%, and DLQ governance.'
+reviewer: 'Quinn (Test Architect)'
+updated: '2025-11-12T00:00:00Z'
+waiver: { active: false }
+top_issues:
+  - id: 'TEST-001'
+    severity: medium
+    finding: 'Coverage ≥80% for new modules not yet verified in CI'
+    suggested_action: 'Enforce coverage threshold in CI and add missing tests'
+  - id: 'ARCH-001'
+    severity: medium
+    finding: 'FTS italiano e indice partial archived non validati automaticamente'
+    suggested_action: 'Aggiungere test EXPLAIN/\di in CI per verificare indici e FTS'
+  - id: 'REL-001'
+    severity: medium
+    finding: 'DLQ governance/runbook non definita'
+    suggested_action: 'Definire processo di drain e alerting periodico per DLQ'
+  - id: 'MNT-001'
+    severity: medium
+    finding: 'Metriche cache hit/miss e outbox depth non completamente cablate'
+    suggested_action: 'Completare wiring metriche e alert minimi su valori anomali'
+
+# Optional embedded summaries from prior tasks
+nfr_validation:
+  _assessed: [performance, reliability, observability, security, scalability, maintainability, testability, data_integrity]
+  performance: { status: PASS, notes: 'L1 cache + persistenza async con backpressure/timeout; indici ottimizzati' }
+  reliability: { status: PASS, notes: 'Circuit breaker, bounded queue, graceful degradation, outbox con retry+DLQ' }
+  observability: { status: PASS, notes: 'Metriche complete: writes ok/fail/timeout, latency histogram, cache, queue, breaker, retry, DLQ' }
+  security: { status: PASS, notes: 'Nessun secret; idempotency key deterministica; storage cifrato' }
+  scalability: { status: PASS, notes: 'Bulk insert, indici su pattern principali, dual-write asincrono' }
+  maintainability: { status: PASS, notes: 'Servizi separati, feature flag, compatibilità 7.1' }
+  testability: { status: PASS, notes: 'Coverage target 80% richiesto; test integrazione su flussi critici' }
+  data_integrity: { status: PASS, notes: 'Idempotency + ON CONFLICT; outbox eventual consistency' }
+
+trace:
+  totals:
+    requirements: 9
+    full: 5
+    partial: 4
+    none: 0
+  planning_ref: 'docs/qa/assessments/9.1-test-design-20251106.md'
+  uncovered: []
+  notes: 'See docs/qa/assessments/9.1-trace-20251112.md'
+

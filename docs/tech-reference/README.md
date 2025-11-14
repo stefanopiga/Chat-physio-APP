@@ -1,0 +1,1 @@
+sono tutti documenti utili all'implementazione della storia 9.2

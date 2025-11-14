@@ -13,6 +13,7 @@ docs/
 ├── prd/                   # Product Requirements (epics, features)
 ├── stories/               # User stories implementative
 ├── qa/                    # Quality assurance (gates, assessments)
+├── tech-reference/        # Riferimenti tecnici librerie e pattern
 ├── operations/            # Deployment, monitoring, runbooks
 ├── troubleshooting/       # Guide risoluzione problemi
 └── reports/               # Report tecnici e metriche
@@ -38,6 +39,24 @@ docs/
 | **[Pydantic Settings Quick Ref](pydantic-settings-quick-reference.md)** | Pattern configuration management | Implementazione config, validators, secrets |
 | **[FastAPI Best Practices](architecture/addendum-fastapi-best-practices.md)** | Pattern endpoint sicuri e performanti | Sviluppo API, autenticazione, error handling |
 | **[LangChain RAG Patterns](architecture/addendum-langchain-rag-debug-patterns.md)** | Pattern RAG con LangChain | Implementazione RAG, debugging retrieval |
+
+### Tech References
+
+**Location**: [`tech-reference/`](tech-reference/)
+
+Riferimenti implementativi per librerie e pattern tecnici comuni.
+
+| Documento | Descrizione | Tecnologie |
+|-----------|-------------|------------|
+| **[Virtual Scrolling](tech-reference/01-virtual-scrolling.md)** | Comparazione librerie React per rendering liste lunghe | react-window, TanStack Virtual, react-virtuoso |
+| **[Toast Notifications](tech-reference/02-toast-notifications.md)** | Setup toast notifications system | Sonner (shadcn/ui recommended) |
+| **[Exponential Backoff](tech-reference/03-exponential-backoff.md)** | Pattern retry logic con backoff esponenziale | node-retry, Retry-After header |
+| **[Rate Limiting Backend](tech-reference/04-rate-limiting-backend.md)** | Implementazione rate limiting FastAPI | slowapi, Redis/Memory backends |
+| **[PostgreSQL Pagination](tech-reference/05-postgresql-pagination.md)** | Pattern pagination efficienti | Keyset pagination, OFFSET trade-offs |
+| **[Vite Environment Variables](tech-reference/06-vite-environment-variables.md)** | Gestione variabili ambiente Vite | VITE_ prefix, modes, TypeScript types |
+| **[React Hook Testing](tech-reference/07-react-hook-testing.md)** | Testing custom hooks React | @testing-library/react-hooks, Vitest |
+
+**Indice completo**: [`tech-reference/00-indice.md`](tech-reference/00-indice.md)
 
 ### Product & Stories
 
@@ -210,6 +229,8 @@ Bounded: [0, 100]
 ---
 
 ### 👨‍💻 Developer
+
+**🆕 Nuovo al progetto?** Inizia con la **[Developer Onboarding Guide](developer-onboarding.md)** — guida completa step-by-step per setup, workflow development, learning path, e tech references (2-4 ore).
 
 **Setup iniziale:**
 1. [Tech Stack](architecture/sezione-3-tech-stack.md) → capire tecnologie usate

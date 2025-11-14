@@ -71,9 +71,33 @@ async def lifespan(app):
     - Startup: inizializzazione connection pool
     - Shutdown: chiusura pool e cleanup risorse
     """
-    await init_db_pool()
+    import logging
+    logger = logging.getLogger("database")
+    logger.critical("🚀 [LIFESPAN] ENTERED - Starting database initialization")
+    
+    try:
+        await init_db_pool()
+        logger.critical("✅ [LIFESPAN] Database pool initialized successfully")
+    except Exception as e:
+        logger.critical(f"❌ [LIFESPAN] Database initialization FAILED: {e}", exc_info=True)
+        raise
+    
+    logger.critical("🟢 [LIFESPAN] Yielding control to application")
     yield
+    
+    logger.critical("🔴 [LIFESPAN] Shutdown initiated - flushing pending writes")
+    
+    # CRITICAL FIX: Await pending DB writes before shutdown
+    try:
+        from .services.conversation_service import flush_pending_writes
+        await flush_pending_writes()
+        logger.critical("✅ [LIFESPAN] Pending writes flushed successfully")
+    except Exception as e:
+        logger.error(f"⚠️ [LIFESPAN] Error flushing pending writes: {e}", exc_info=True)
+    
+    logger.critical("🔴 [LIFESPAN] Closing database pool")
     await close_db_pool()
+    logger.critical("✅ [LIFESPAN] Database pool closed")
 
 
 async def get_db_connection() -> AsyncGenerator[asyncpg.Connection, None]:

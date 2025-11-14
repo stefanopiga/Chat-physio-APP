@@ -16,18 +16,18 @@ python-docx = "^1.1.2"
 pypdf = "^5.0.0"
 pymupdf = "^1.24.0"
 tenacity = "^9.0.0"
-langchain-community = "^0.3.3"
-langchain-text-splitters = "^0.3.1"
+langchain-community = "^0.3.15"
+langchain-text-splitters = "^0.3.2"
 docx2txt = "^0.8"
-langchain-core = "^0.3.3"
-langchain-openai = "^0.2.2"
+langchain-core = "^0.3.20"
+langchain-openai = "^0.2.10"
 supabase = "^2.6.0"
 slowapi = "^0.1.9"
 celery = {version = "^5.4.0", extras = ["redis"]}
 asyncpg = "^0.30.0"
 # Story 7.1: tiktoken già fornito da langchain-openai (>=0.7,<1)
 sentence-transformers = "^2.2.2"  # Story 7.2: Cross-encoder models for re-ranking
-
+aiofiles = "^23.0.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.3.3"

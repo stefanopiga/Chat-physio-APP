@@ -9,6 +9,7 @@ Architecture:
 - Schema layer per Pydantic models
 - Dependency injection pattern
 """
+import asyncio
 import logging
 from dotenv import load_dotenv
 
@@ -107,3 +108,49 @@ logger.info({
         "documents"
     ]
 })
+
+
+# -------------------------------
+# Story 9.1: Outbox Retry Worker
+# -------------------------------
+async def outbox_retry_worker():
+    """
+    Background task per retry pending outbox entries.
+    
+    Story 9.1 AC9, Task 8: Background loop per eventual consistency.
+    Runs every 5 seconds per process pending DB writes from outbox.
+    """
+    from .services.outbox_queue import OutboxPersistenceQueue
+    from .services.persistence_service import ConversationPersistenceService
+    from . import database
+    
+    if not settings.enable_persistent_memory:
+        logger.info({"event": "outbox_worker_disabled", "reason": "persistence_disabled"})
+        return
+    
+    if not database.db_pool:
+        logger.warning({"event": "outbox_worker_disabled", "reason": "db_pool_unavailable"})
+        return
+    
+    outbox_queue = OutboxPersistenceQueue()
+    persistence_service = ConversationPersistenceService(database.db_pool)
+    
+    logger.info({"event": "outbox_retry_worker_started"})
+    
+    while True:
+        try:
+            await outbox_queue.retry_pending(persistence_service)
+        except Exception as exc:
+            logger.error({
+                "event": "outbox_retry_worker_error",
+                "error": str(exc),
+            })
+        
+        await asyncio.sleep(5)  # Run every 5 seconds
+
+
+@app.on_event("startup")
+async def startup_outbox_worker():
+    """Start outbox retry worker on app startup."""
+    if settings.enable_persistent_memory:
+        asyncio.create_task(outbox_retry_worker())

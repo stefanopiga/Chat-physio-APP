@@ -10,11 +10,12 @@ Stories: 3.1, 3.2, 3.4
 """
 import time
 import logging
+import hashlib
 from typing import Annotated, Optional, Dict
 from uuid import uuid4
 from datetime import datetime, timezone
 
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, Request, Query, Response
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import PydanticOutputParser
 from langchain_core.runnables import Runnable
@@ -30,12 +31,16 @@ from ..schemas.chat import (
     FeedbackCreateResponse,
     ChatRequest,  # Story 5.5 Task 3: Chat endpoint schema
     ChatResponse,  # Story 5.5 Task 3: Chat endpoint schema
+    SessionHistoryResponse,  # Story 9.2
+    ConversationMessage as ConversationMessageSchema,  # Story 9.2
 )
 from ..config import Settings, get_settings
 from ..services.chat_service import record_ag_latency_ms, get_llm
 from ..services.rate_limit_service import rate_limit_service
 from ..services.conversation_service import get_conversation_manager  # Story 7.1
+from ..services.persistence_service import ConversationPersistenceService  # Story 9.2
 from ..dependencies import _auth_bridge, TokenPayload, get_supabase_client  # Story 4.2.4
+from .. import database  # Story 9.2
 from ..knowledge_base.search import perform_semantic_search
 from ..knowledge_base.enhanced_retrieval import get_enhanced_retriever  # Story 7.2
 from ..knowledge_base.dynamic_retrieval import get_dynamic_strategy  # Story 7.2
@@ -156,8 +161,179 @@ def chat_query_endpoint(
     return ChatQueryResponse(chunks=[ChatQueryChunk(**c) for c in chunks])
 
 
+@router.get("/sessions/{sessionId}/history/full", response_model=SessionHistoryResponse)
+async def get_session_history(
+    sessionId: str,
+    request: Request,
+    response: Response,
+    payload: Annotated[TokenPayload, Depends(_auth_bridge)],
+    settings: Annotated[Settings, Depends(get_settings)],
+    limit: int = Query(100, ge=1, le=500),
+    offset: int = Query(0, ge=0),
+):
+    """
+    Session history retrieval endpoint (Story 9.2).
+    
+    Recupera full conversational history per session da database con pagination.
+    
+    Features:
+    - Pagination con limit/offset parameters
+    - Rate limiting: 60 req/min per session
+    - Feature flag: ENABLE_PERSISTENT_MEMORY
+    - Graceful degradation: 404 per session nuova
+    
+    Args:
+        sessionId: Session identifier
+        request: FastAPI Request
+        response: FastAPI Response (per headers)
+        limit: Max messaggi per page (default 100, max 500)
+        offset: Pagination offset (default 0)
+        payload: JWT payload verificato
+        settings: Application settings
+        
+    Returns:
+        SessionHistoryResponse con messages, total_count, has_more
+        
+    Security:
+        - JWT authentication required
+        - Rate limiting: 60/minute
+        - Cache-Control: private, max-age=0, no-store (per-user data)
+    """
+    # QA Must-Fix: Cache-Control headers per evitare caching proxy indesiderato
+    response.headers["Cache-Control"] = "private, max-age=0, no-store"
+    response.headers["Pragma"] = "no-cache"
+    
+    # AC6: Feature flag check
+    if not settings.enable_persistent_memory:
+        logger.info({
+            "event": "history_disabled_feature_flag",
+            "session_id": sessionId,
+        })
+        # Graceful degradation: return empty history
+        return SessionHistoryResponse(
+            messages=[],
+            total_count=0,
+            has_more=False,
+        )
+    
+    # AC1: Rate limiting enforcement
+    rate_limit_service.enforce_rate_limit(
+        key=_resolve_chat_rate_limit_key(request, payload),
+        scope="session_history",
+        window_seconds=60,
+        max_requests=60,
+    )
+    
+    if not sessionId or not sessionId.strip():
+        raise HTTPException(status_code=400, detail="sessionId mancante")
+    
+    # AC7: Error handling con graceful degradation
+    if not database.db_pool:
+        logger.warning({
+            "event": "history_unavailable_no_db_pool",
+            "session_id": sessionId,
+        })
+        # AC7: Graceful degradation se DB non disponibile
+        return SessionHistoryResponse(
+            messages=[],
+            total_count=0,
+            has_more=False,
+        )
+    
+    try:
+        # AC2: Use ConversationPersistenceService.load_session_history()
+        persistence_service = ConversationPersistenceService(database.db_pool)
+        
+        # Load messages con pagination
+        conversation_messages = await persistence_service.load_session_history(
+            session_id=sessionId,
+            limit=limit + 1,  # Fetch +1 per determinare has_more
+            offset=offset,
+        )
+        
+        # AC1: Determine has_more based su limit+1 fetch
+        has_more = len(conversation_messages) > limit
+        if has_more:
+            conversation_messages = conversation_messages[:limit]
+        
+        # AC7: Return empty array per sessione nuova/vuota (NOT 404)
+        if not conversation_messages and offset == 0:
+            logger.info({
+                "event": "session_history_empty",
+                "session_id": sessionId,
+            })
+            return SessionHistoryResponse(
+                messages=[],
+                total_count=0,
+                has_more=False,
+            )
+        
+        # AC5: Convert to response schema preservando formato identico
+        response_messages: list[ConversationMessageSchema] = []
+        for msg in conversation_messages:
+            # Generate unique message ID from timestamp + content hash
+            msg_id = hashlib.sha256(
+                f"{sessionId}_{msg.timestamp.isoformat()}_{msg.content[:50]}".encode()
+            ).hexdigest()[:16]
+            
+            # CRITICAL FIX: Popola metadata con citations per frontend
+            # Frontend cerca msg.metadata.citations per rendering popover
+            metadata_dict = {}
+            if msg.chunk_ids:
+                metadata_dict["citations"] = [
+                    {"chunk_id": cid} for cid in msg.chunk_ids
+                ]
+            
+            response_messages.append(
+                ConversationMessageSchema(
+                    id=msg_id,
+                    role=msg.role,  # type: ignore[arg-type]
+                    content=msg.content,
+                    source_chunk_ids=msg.chunk_ids,
+                    metadata=metadata_dict,
+                    created_at=msg.timestamp.isoformat(),
+                )
+            )
+        
+        # AC1: Calcola total_count (approximation basata su has_more)
+        # In produzione, considerare COUNT(*) separata per total_count esatto
+        total_count = offset + len(response_messages)
+        if has_more:
+            total_count += 1  # At least 1 more
+        
+        logger.info({
+            "event": "session_history_retrieved",
+            "session_id": sessionId,
+            "messages_count": len(response_messages),
+            "has_more": has_more,
+            "limit": limit,
+            "offset": offset,
+        })
+        
+        return SessionHistoryResponse(
+            messages=response_messages,
+            total_count=total_count,
+            has_more=has_more,
+        )
+    
+    except HTTPException:
+        raise
+    except Exception as exc:
+        logger.error({
+            "event": "session_history_error",
+            "session_id": sessionId,
+            "error": str(exc),
+            "error_type": type(exc).__name__,
+        }, exc_info=True)
+        # AC7: 500 error con graceful handling
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to load session history"
+        )
+
+
 @router.post("/sessions/{sessionId}/messages", response_model=ChatMessageCreateResponse)
-def create_chat_message(
+async def create_chat_message(
     sessionId: str,
     body: ChatMessageCreateRequest,
     request: Request,
@@ -330,6 +506,7 @@ def create_chat_message(
             max_turns=settings.conversation_max_turns,
             max_tokens=settings.conversation_max_tokens,
             compact_length=settings.conversation_message_compact_length,
+            enable_persistence=settings.enable_persistent_memory,  # Story 9.1 AC3
         )
         context_window = conv_manager.get_context_window(sessionId)
         conversation_history = conv_manager.format_for_prompt(context_window)
@@ -469,30 +646,7 @@ def create_chat_message(
     answer_value = (answer_value or "").strip() or "Non trovato nel contesto"
     citations_value = citations_value or []
 
-    # Story 7.1: Save conversation turn if conversational memory enabled
-    if settings.enable_conversational_memory and context_window is not None:
-        conv_manager = get_conversation_manager(
-            max_turns=settings.conversation_max_turns,
-            max_tokens=settings.conversation_max_tokens,
-            compact_length=settings.conversation_message_compact_length,
-        )
-        conv_manager.add_turn(
-            sessionId,
-            user_message,
-            answer_value,
-            citations_value,
-        )
-        
-        logger.info({
-            "event": "conversation_turn_saved",
-            "session_id": sessionId,
-            "turn_number": len(chat_messages_store.get(sessionId, [])) // 2,
-            "user_msg_length": len(user_message),
-            "assistant_msg_length": len(answer_value),
-        })
-
-    # Persistenza minima in memoria per la sessione
-    # Arricchisci citazioni con metadati minimi per popover
+    # Arricchisci citazioni con metadati minimi per popover (prima di add_turn)
     enriched_citations: list[dict] = []
     chunks_by_id: Dict[str, ChatQueryChunk] = {}
     for ch in resolved_chunks:
@@ -515,17 +669,44 @@ def create_chat_message(
             "position": None,
         })
     
-    stored = {
-        "id": message_id,
-        "session_id": sessionId,
-        "role": "assistant",
-        "content": answer_value,
-        "citations": enriched_citations,
-        "created_at": datetime.now(timezone.utc).isoformat(),
-    }
-    chat_messages = chat_messages_store.get(sessionId) or []
-    chat_messages.append(stored)
-    chat_messages_store[sessionId] = chat_messages
+    # Story 7.1: Save conversation turn if conversational memory enabled
+    # CRITICAL FIX: conv_manager.add_turn() gestisce TUTTA la persistenza (L1+L2)
+    # Rimuovere salvataggio duplicato per evitare messaggi duplicati
+    if settings.enable_conversational_memory and context_window is not None:
+        conv_manager = get_conversation_manager(
+            max_turns=settings.conversation_max_turns,
+            max_tokens=settings.conversation_max_tokens,
+            compact_length=settings.conversation_message_compact_length,
+            enable_persistence=settings.enable_persistent_memory,  # Story 9.1 AC3
+        )
+        
+        # DIAGNOSTIC: Log manager type per verify HybridConversationManager initialization
+        manager_type = type(conv_manager).__name__
+        logger.info({
+            "event": "conversation_manager_type",
+            "manager_type": manager_type,
+            "persistence_enabled": settings.enable_persistent_memory,
+            "conversational_memory_enabled": settings.enable_conversational_memory,
+        })
+        
+        # add_turn() salva ENTRAMBI i messaggi (user + assistant) in L1 cache
+        # e avvia async persist in DB se HybridConversationManager
+        conv_manager.add_turn(
+            sessionId,
+            user_message,
+            answer_value,
+            citations_value,  # Passa citations come chunk IDs
+        )
+        
+        logger.info({
+            "event": "conversation_turn_saved",
+            "session_id": sessionId,
+            "turn_number": len(chat_messages_store.get(sessionId, [])) // 2,
+            "user_msg_length": len(user_message),
+            "assistant_msg_length": len(answer_value),
+            "citations_count": len(citations_value) if citations_value else 0,
+            "manager_type": manager_type,
+        })
     
     # Metriche di performance: latenza e p95 aggiornata
     _ag_duration_ms = int((time.time() - _ag_start_time) * 1000)
