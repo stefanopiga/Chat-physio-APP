@@ -277,9 +277,8 @@ test.describe("Story 9.2: Session History Retrieval & UI Integration", () => {
     // Attendere qualche secondo per verificare nessuna chiamata API
     await page.waitForTimeout(2000);
 
-    // Verificare API NON chiamata (note: questo potrebbe non funzionare perfettamente
-    // se feature flag è controllato lato server, ma per test client-side va bene)
-    // expect(apiCalled).toBe(false); // Commentato perché potrebbe fallire se feature flag lato server
+    // Verificare che l'API NON sia stata chiamata con feature flag disabled
+    expect(apiCalled).toBe(false);
 
     // Chat input funzionante
     const chatInput = page.getByPlaceholder(/inserisci la tua domanda/i);
