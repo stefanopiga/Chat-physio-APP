@@ -1,7 +1,7 @@
 -- ============================================
 -- Supabase FisioRAG - Consolidated Schema
--- Generated via Reverse Engineering
--- Date: 2025-11-11
+-- Generated via Reverse Engineering + Epic 9 Integration
+-- Date: 2025-01-12 (Updated)
 -- Source: Production Database (verified)
 -- Supabase CLI Version: 2.58.5
 -- Connection: Direct (port 5432)
@@ -11,16 +11,17 @@
 -- NEW PROJECT VERSION - Cleaned for fresh Supabase projects
 -- Removed: extensions.* functions (auto-managed by Supabase)
 -- Safe for: New empty Supabase projects
--- Revision: 3 (2025-11-11 - removed circular GRANT statements)
+-- Revision: 4 (2025-01-12 - integrated Epic 9 chat_messages table)
 --
--- Tables: 6 (documents, document_chunks, student_tokens, refresh_tokens, users, feedback)
--- Indexes: HNSW vector indexes included
+-- Tables: 7 (documents, document_chunks, student_tokens, refresh_tokens, users, feedback, chat_messages)
+-- Indexes: HNSW vector indexes + FTS Italian + Session history
 -- Functions: 5 public (match_document_chunks, update triggers, auth sync)
 -- RLS: Enabled for feedback, refresh_tokens, student_tokens, users
--- NOTE: RLS NOT enabled for documents/document_chunks (intentional)
+-- NOTE: RLS NOT enabled for documents/document_chunks/chat_messages (intentional)
 -- Grants: service_role permissions included
 -- Extension: PGVector explicitly enabled for embeddings
 -- Auto-Sync: auth.users → public.users (trigger automatico)
+-- Epic 9: Persistent Conversational Memory (Story 9.1) - Hybrid L1/L2 architecture
 -- ============================================
 
 SET statement_timeout = 0;
@@ -237,6 +238,37 @@ CREATE TABLE IF NOT EXISTS "public"."users" (
 ALTER TABLE "public"."users" OWNER TO "postgres";
 
 
+CREATE TABLE IF NOT EXISTS "public"."chat_messages" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "session_id" "text" NOT NULL,
+    "role" "text" NOT NULL,
+    "content" "text" NOT NULL,
+    "source_chunk_ids" "uuid"[],
+    "metadata" "jsonb" DEFAULT '{}'::"jsonb",
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "idempotency_key" "text" NOT NULL,
+    CONSTRAINT "chat_messages_role_check" CHECK (("role" = ANY (ARRAY['user'::"text", 'assistant'::"text", 'system'::"text"])))
+);
+
+
+ALTER TABLE "public"."chat_messages" OWNER TO "postgres";
+
+
+COMMENT ON TABLE "public"."chat_messages" IS 'Persistent conversational memory for chat sessions - Epic 9 Story 9.1';
+
+
+COMMENT ON COLUMN "public"."chat_messages"."session_id" IS 'Chat session identifier (text UUID)';
+
+
+COMMENT ON COLUMN "public"."chat_messages"."role" IS 'Message role: user, assistant, or system';
+
+
+COMMENT ON COLUMN "public"."chat_messages"."source_chunk_ids" IS 'Array of document chunk UUIDs used for RAG response generation';
+
+
+COMMENT ON COLUMN "public"."chat_messages"."idempotency_key" IS 'Unique key for deduplication: sha256(session_id + timestamp_ms + content_hash)';
+
+
 -- ============================================
 -- AUTO-SYNC: auth.users → public.users
 -- ============================================
@@ -335,6 +367,11 @@ ALTER TABLE ONLY "public"."users"
 
 
 
+ALTER TABLE ONLY "public"."chat_messages"
+    ADD CONSTRAINT "chat_messages_pkey" PRIMARY KEY ("id");
+
+
+
 CREATE INDEX "document_chunks_embedding_hnsw_idx" ON "public"."document_chunks" USING "hnsw" ("embedding" "extensions"."vector_cosine_ops") WITH ("m"='16', "ef_construction"='64');
 
 
@@ -400,6 +437,26 @@ CREATE INDEX "idx_users_email" ON "public"."users" USING "btree" ("email");
 
 
 CREATE INDEX "idx_users_role" ON "public"."users" USING "btree" ("role");
+
+
+
+CREATE UNIQUE INDEX "idx_chat_messages_idempotency_key" ON "public"."chat_messages" USING "btree" ("idempotency_key");
+
+
+
+CREATE INDEX "idx_chat_messages_session_created" ON "public"."chat_messages" USING "btree" ("session_id", "created_at" DESC);
+
+
+
+CREATE INDEX "idx_chat_messages_created_at" ON "public"."chat_messages" USING "btree" ("created_at" DESC);
+
+
+
+CREATE INDEX "idx_chat_messages_content_fts" ON "public"."chat_messages" USING "gin" ("to_tsvector"('italian'::"regconfig", "content"));
+
+
+
+CREATE INDEX "idx_chat_messages_metadata_archived" ON "public"."chat_messages" USING "btree" ((("metadata" ->> 'archived'::"text"))) WHERE (("metadata" ->> 'archived'::"text") IS NOT NULL);
 
 
 
@@ -503,6 +560,14 @@ GRANT ALL ON TABLE "public"."users" TO "service_role";
 
 
 GRANT ALL ON TABLE "public"."documents" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."chat_messages" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."chat_messages" TO "postgres";
 
 
 

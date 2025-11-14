@@ -1,131 +1,176 @@
-# Schema SQL - Guida Selezione File
+# Schema Consolidato Supabase - FisioRAG
 
-## Quick Decision
+## File: `00_consolidated_schema_v2_NEWPROJECT.sql`
 
-**Stai creando un NUOVO progetto Supabase?**
-→ USA: `00_consolidated_schema_v2_NEWPROJECT.sql` ✅
+### Descrizione
 
-**Stai migrando o facendo restore su progetto esistente?**
-→ USA: `00_consolidated_schema_v2_VERIFIED.sql`
+Schema SQL consolidato per nuovi progetti Supabase. Contiene tutte le tabelle, indici, funzioni, trigger e policy necessarie per l'applicazione FisioRAG.
 
----
-
-## File Disponibili
-
-### `00_consolidated_schema_v2_NEWPROJECT.sql` ⭐ RACCOMANDATO
-
-**Quando usare**: Setup database su **nuovo progetto Supabase** appena creato
-
-**Caratteristiche**:
-- Versione pulita senza funzioni `extensions.*`
-- Risolve errore `"must be owner of function grant_pg_cron_access"`
-- Include solo oggetti schema `public`
-- 494 righe, 22KB
-
-**Contenuto**:
-- 6 tabelle
-- 4 funzioni public
-- Indici HNSW per ricerca vettoriale
-- RLS policies
-- GRANT statements
-
-### `00_consolidated_schema_v2_VERIFIED.sql`
-
-**Quando usare**: Dump completo per reference o restore avanzato
-
-**Caratteristiche**:
-- Schema completo con funzioni `extensions.*`
-- Dump 1:1 da production database
-- Include oggetti sistema Supabase
-- 772 righe, 24KB
-
-**⚠️ Attenzione**: Causa errori ownership se applicato su progetto nuovo vuoto.
-
-**Contenuto**:
-- Tutto di NEWPROJECT +
-- 7 funzioni extensions (grant_pg_cron_access, grant_pg_graphql_access, etc.)
-
-### `00_consolidated_schema_GENERATED_BACKUP.sql`
-
-**Uso**: Backup dump raw non modificato (archivio)
+**Revision**: 4 (2025-01-12)  
+**Status**: Aggiornato con Epic 9 (Persistent Conversational Memory)
 
 ---
 
-## Errori Comuni
+## 📦 Contenuto
 
-### Errore: "must be owner of function grant_pg_cron_access"
+### Tabelle (7 totali)
 
-**Causa**: Hai usato `v2_VERIFIED.sql` su progetto nuovo
+1. **documents** - Metadati documenti caricati
+2. **document_chunks** - Chunk vettoriali per RAG
+3. **student_tokens** - Token accesso studenti
+4. **refresh_tokens** - Token refresh JWT
+5. **users** - Utenti applicazione (mirror di auth.users)
+6. **feedback** - Feedback utenti sui messaggi chat
+7. **chat_messages** - Memoria persistente conversazioni (Epic 9)
 
-**Soluzione**: Usa `v2_NEWPROJECT.sql` invece
+### Funzionalità Principali
 
-### Errore: "grant options cannot be granted back to your own grantor"
+- **PGVector Extension**: Embeddings vettoriali per semantic search
+- **HNSW Index**: Ricerca vettoriale ottimizzata (m=16, ef_construction=64)
+- **Full-Text Search**: Indice GIN per ricerca testuale in Italiano
+- **Auto-Sync**: Trigger automatico auth.users → public.users
+- **Row Level Security**: Policy RLS per feedback, tokens, users
+- **Idempotency**: Deduplicazione messaggi chat via idempotency_key
+- **Session History**: Indici ottimizzati per recupero storico conversazioni
 
-**Causa**: Schema conteneva GRANT circolari su funzioni extensions (versione obsoleta)
+---
 
-**Soluzione**: Usa versione corrente `v2_NEWPROJECT.sql` (rev3, 2025-11-11)
+## 🚀 Utilizzo
 
-**✅ Versione corrente** (rev3) ha già rimosso questi GRANT problematici
+### Per Nuovo Progetto Supabase
 
-### Errore: "type extensions.vector does not exist"
+```bash
+# 1. Crea nuovo progetto su supabase.com
+# 2. Ottieni le credenziali di connessione
+# 3. Esegui lo schema consolidato
 
-**Causa**: Extension PGVector non abilitata automaticamente su progetto nuovo
-
-**Soluzione Rapida**: Schema già include `CREATE EXTENSION vector` dalla versione corrente
-
-**Se persiste**:
-1. Dashboard → Database → Extensions
-2. Cerca "vector"
-3. Click "Enable" su pg_vector
-4. Riprova applicazione schema
-
-**Manuale**:
-```sql
-CREATE EXTENSION IF NOT EXISTS vector WITH SCHEMA extensions;
+psql -h db.<your-project-ref>.supabase.co \
+     -U postgres \
+     -d postgres \
+     -p 5432 \
+     -f supabase/sql_unico/00_consolidated_schema_v2_NEWPROJECT.sql
 ```
 
-**✅ Versione corrente dello schema** (post 2025-11-11) include già questo fix.
+### Tramite Supabase CLI
 
----
+```bash
+# 1. Collega il progetto
+supabase link --project-ref <your-project-ref>
 
-## Come Applicare
-
-### Via Dashboard (Più Semplice)
-
-1. Supabase Dashboard → SQL Editor
-2. Copia contenuto file scelto
-3. Incolla nell'editor
-4. Run (Ctrl+Enter)
-
-### Via CLI
-
-```powershell
-psql "postgresql://postgres.<ref>:[PASSWORD]@<host>:5432/postgres" -f supabase/sql_unico/00_consolidated_schema_v2_NEWPROJECT.sql
+# 2. Esegui lo schema
+supabase db push --db-url "postgresql://postgres:[password]@db.<your-project-ref>.supabase.co:5432/postgres" \
+                 --file supabase/sql_unico/00_consolidated_schema_v2_NEWPROJECT.sql
 ```
 
+### Via Supabase Dashboard (SQL Editor)
+
+1. Accedi a Supabase Dashboard
+2. Vai su **SQL Editor**
+3. Copia/incolla il contenuto di `00_consolidated_schema_v2_NEWPROJECT.sql`
+4. Esegui (Run)
+
 ---
 
-## Verifica Post-Applicazione
+## ✅ Verifica Post-Installazione
 
 ```sql
--- Conteggio tabelle (atteso: 6)
-SELECT COUNT(*) FROM information_schema.tables 
-WHERE table_schema = 'public';
+-- 1. Verifica tabelle create
+SELECT table_name 
+FROM information_schema.tables 
+WHERE table_schema = 'public' 
+ORDER BY table_name;
 
--- Verifica extension vector
-SELECT * FROM pg_available_extensions WHERE name = 'vector';
+-- Output atteso: 7 tabelle
+-- chat_messages, document_chunks, documents, feedback, 
+-- refresh_tokens, student_tokens, users
 
--- Verifica HNSW index
-SELECT indexname FROM pg_indexes 
-WHERE tablename = 'document_chunks' 
-  AND indexname LIKE '%hnsw%';
+-- 2. Verifica estensione PGVector
+SELECT * FROM pg_extension WHERE extname = 'vector';
+
+-- 3. Verifica indici chat_messages
+SELECT indexname, indexdef 
+FROM pg_indexes 
+WHERE tablename = 'chat_messages';
+
+-- Output atteso: 6 indici
+-- idx_chat_messages_idempotency_key (UNIQUE)
+-- idx_chat_messages_session_created
+-- idx_chat_messages_created_at
+-- idx_chat_messages_content_fts (GIN Italian)
+-- idx_chat_messages_metadata_archived (PARTIAL)
+-- chat_messages_pkey
+
+-- 4. Test idempotency constraint
+INSERT INTO public.chat_messages 
+  (session_id, role, content, idempotency_key)
+VALUES 
+  ('test-session', 'user', 'test message', 'test-key-123');
+
+-- Questo dovrebbe fallire (duplicate key):
+INSERT INTO public.chat_messages 
+  (session_id, role, content, idempotency_key)
+VALUES 
+  ('test-session', 'user', 'another message', 'test-key-123');
+-- ERROR: duplicate key value violates unique constraint
+
+-- Cleanup
+DELETE FROM public.chat_messages WHERE idempotency_key = 'test-key-123';
 ```
 
 ---
 
-## Changelog
+## 📝 Changelog
 
-**2025-11-11**:
-- Creato `v2_NEWPROJECT.sql` per risolvere ownership errors
-- `v2_VERIFIED.sql` rimane disponibile per reference
+### Revision 4 (2025-01-12)
+- ✅ Aggiunta tabella `chat_messages` (Epic 9 Story 9.1)
+- ✅ Aggiunto indice UNIQUE su `idempotency_key` per deduplicazione
+- ✅ Aggiunto indice composto `(session_id, created_at DESC)` per session history
+- ✅ Aggiunto indice GIN Full-Text Search in Italiano
+- ✅ Aggiunto indice PARTIAL per messaggi archiviati
+- ✅ Aggiunto CHECK constraint su `role` (user/assistant/system)
+- ✅ Aggiunto campo `source_chunk_ids UUID[]` per citations RAG
 
+### Revision 3 (2025-11-11)
+- Rimossi GRANT circolari su extensions
+- Pulizia schema per nuovi progetti
+
+### Revision 2
+- Schema base consolidato da produzione
+
+---
+
+## 🔒 Note di Sicurezza
+
+### RLS Disabilitato per chat_messages
+
+La tabella `chat_messages` **NON ha RLS abilitato** per scelta progettuale:
+- L'accesso è controllato a livello applicativo (FastAPI JWT)
+- Il `service_role` del backend gestisce tutte le operazioni
+- Future story potranno aggiungere RLS se necessario
+
+### Permessi
+
+- **service_role**: ALL su tutte le tabelle (backend API)
+- **postgres**: Owner di tutte le tabelle
+- **authenticated**: Solo tramite RLS policy (feedback, tokens, users)
+- **anon**: Solo schema extensions (per pgvector public functions)
+
+---
+
+## 📚 Riferimenti
+
+- **Story 9.1**: Hybrid Memory Architecture (L1 cache + L2 DB)
+- **Story 9.2**: Session History Retrieval & UI Integration
+- **Migration File**: `supabase/migrations/20251106000000_epic9_conversational_memory_indices.sql`
+- **Architecture**: `docs/architecture/addendum-persistent-conversational-memory.md`
+
+---
+
+## ⚠️ Importante
+
+Questo file è **AUTOSUFFICIENTE** per nuovi progetti. Non è necessario eseguire altre migration se si parte da zero.
+
+Per progetti esistenti che hanno già lo schema base (Revision 3), eseguire solo la migration Epic 9:
+```bash
+psql ... -f supabase/migrations/20251106000000_epic9_conversational_memory_indices.sql
+```
