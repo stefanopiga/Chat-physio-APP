@@ -159,8 +159,8 @@ const ChatPage: React.FC = () => {
 
   return (
     <div className="flex flex-col h-screen">
-      {/* Header - fisso in alto */}
-      <div className="flex-shrink-0 py-8 px-6 border-b">
+      {/* Header - sticky per accesso dashboard durante scroll */}
+      <div className="sticky top-0 z-10 flex-shrink-0 py-8 px-6 border-b bg-background">
         <div className="flex items-center justify-between max-w-[800px] mx-auto">
           <h1 className="text-3xl font-bold">Chat</h1>
           <div className="flex items-center gap-5">
@@ -230,8 +230,8 @@ const ChatPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Input - fisso in basso */}
-      <div className="flex-shrink-0 p-4 border-t bg-background">
+      {/* Input - sticky bottom per accesso sempre disponibile */}
+      <div className="sticky bottom-0 z-10 flex-shrink-0 p-4 border-t bg-background">
         <div className="max-w-[800px] mx-auto">
           <ChatInput onSubmit={handleSubmit} loading={loading} />
         </div>
