@@ -1,9 +1,11 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
+import { useScrollDirection } from "@/hooks/useScrollDirection";
 
 const Navigation: React.FC = () => {
   const location = useLocation();
+  const scrollDirection = useScrollDirection(10);
 
   const navLinks = [
     { path: "/chat", label: "Chat Studente" },
@@ -14,7 +16,12 @@ const Navigation: React.FC = () => {
   const isActive = (path: string) => location.pathname === path;
 
   return (
-    <nav className="border-b bg-background">
+    <nav
+      className={cn(
+        "sticky top-0 z-50 border-b bg-background transition-transform duration-300",
+        scrollDirection === "down" && "-translate-y-full"
+      )}
+    >
       <div className="mx-auto max-w-7xl px-8">
         {/* Desktop Navigation */}
         <div className="hidden md:flex items-center justify-around h-24">

@@ -26,7 +26,6 @@ const ChatPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [isLoadingMore, setIsLoadingMore] = useState<boolean>(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const messagesContainerRef = useRef<HTMLDivElement>(null);
   const isFirstLoad = useRef<boolean>(true);
 
   // Carica history da persistent memory
@@ -86,14 +85,13 @@ const ChatPage: React.FC = () => {
     }
   }, [hasMoreMessages, isLoadingMore, loadMoreHistory]);
 
-  // Scroll listener per lazy loading pagination
+  // Scroll listener per lazy loading pagination (window scroll)
   useEffect(() => {
-    const container = messagesContainerRef.current;
-    if (!container || !hasMoreMessages) return;
+    if (!hasMoreMessages) return;
 
     const handleScroll = () => {
-      // Trigger load more quando scroll top < 100px (quasi al top)
-      if (container.scrollTop < 100 && !isLoadingMore) {
+      // Trigger load more quando scroll top < 200px (quasi al top)
+      if (window.scrollY < 200 && !isLoadingMore) {
         handleLoadMore();
       }
     };
@@ -105,10 +103,10 @@ const ChatPage: React.FC = () => {
       timeoutId = setTimeout(handleScroll, 300);
     };
 
-    container.addEventListener("scroll", debouncedHandleScroll);
+    window.addEventListener("scroll", debouncedHandleScroll);
     return () => {
       clearTimeout(timeoutId);
-      container.removeEventListener("scroll", debouncedHandleScroll);
+      window.removeEventListener("scroll", debouncedHandleScroll);
     };
   }, [hasMoreMessages, isLoadingMore, handleLoadMore]);
 
@@ -158,9 +156,9 @@ const ChatPage: React.FC = () => {
   );
 
   return (
-    <div className="flex flex-col h-screen">
-      {/* Header - sticky per accesso dashboard durante scroll */}
-      <div className="sticky top-0 z-10 flex-shrink-0 py-8 px-6 border-b bg-background">
+    <div className="min-h-screen flex flex-col">
+      {/* Header - scroll con la pagina */}
+      <div className="py-8 px-6 border-b bg-background">
         <div className="flex items-center justify-between max-w-[800px] mx-auto">
           <h1 className="text-3xl font-bold">Chat</h1>
           <div className="flex items-center gap-5">
@@ -175,7 +173,7 @@ const ChatPage: React.FC = () => {
 
       {/* Loading history indicator */}
       {isLoadingHistory && sessionId && (
-        <div className="flex-shrink-0 px-4 pt-2">
+        <div className="px-4 pt-2">
           <div className="text-muted-foreground text-sm max-w-[800px] mx-auto flex items-center gap-2">
             <span className="animate-spin">⏳</span>
             Caricamento storico conversazione...
@@ -185,7 +183,7 @@ const ChatPage: React.FC = () => {
 
       {/* Error message - se presente */}
       {error && (
-        <div className="flex-shrink-0 px-4 pt-2">
+        <div className="px-4 pt-2">
           <div
             role="alert"
             className="text-destructive max-w-[800px] mx-auto"
@@ -198,7 +196,7 @@ const ChatPage: React.FC = () => {
 
       {/* History error - graceful degradation (warning, non blocking) */}
       {historyError && (
-        <div className="flex-shrink-0 px-4 pt-2">
+        <div className="px-4 pt-2">
           <div
             className="text-muted-foreground text-sm max-w-[800px] mx-auto"
             data-testid="history-warning"
@@ -209,29 +207,23 @@ const ChatPage: React.FC = () => {
         </div>
       )}
 
-      {/* Chat messages - scroll area che cresce */}
-      <div className="flex-1 p-4 flex flex-col">
-        <div className="max-w-[800px] mx-auto w-full flex-1 flex flex-col">
-          <div
-            ref={messagesContainerRef}
-            className="flex-1 rounded-lg border border-border bg-card p-3 text-card-foreground overflow-y-auto"
-            data-testid="chat-messages-container"
-          >
-            {/* Load more indicator - in alto quando si scrolla verso top */}
-            {isLoadingMore && (
-              <div className="text-muted-foreground text-sm flex items-center justify-center gap-2 py-2">
-                <span className="animate-spin">⏳</span>
-                Caricamento messaggi precedenti...
-              </div>
-            )}
-            <ChatMessagesList messages={messages} loading={loading} />
-            <div ref={messagesEndRef} />
-          </div>
+      {/* Chat messages - scroll su window */}
+      <div className="p-4">
+        <div className="max-w-[800px] mx-auto">
+          {/* Load more indicator - in alto quando si scrolla verso top */}
+          {isLoadingMore && (
+            <div className="text-muted-foreground text-sm flex items-center justify-center gap-2 py-2">
+              <span className="animate-spin">⏳</span>
+              Caricamento messaggi precedenti...
+            </div>
+          )}
+          <ChatMessagesList messages={messages} loading={loading} />
+          <div ref={messagesEndRef} />
         </div>
       </div>
 
       {/* Input - sticky bottom per accesso sempre disponibile */}
-      <div className="sticky bottom-0 z-10 flex-shrink-0 p-4 border-t bg-background">
+      <div className="sticky bottom-0 z-10 p-4 border-t bg-background">
         <div className="max-w-[800px] mx-auto">
           <ChatInput onSubmit={handleSubmit} loading={loading} />
         </div>
