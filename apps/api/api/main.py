@@ -1,4 +1,5 @@
-﻿"""
+﻿# file centrale
+"""
 FisioRAG API - FastAPI application entry point.
 
 Refactored: Story 5.2 - FastAPI Modularization & Architecture Refactoring
