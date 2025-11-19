@@ -1,0 +1,43 @@
+# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
+language: "it-IT"
+reviews:
+  profile: "assertive"
+  high_level_summary: true
+  auto_review:
+    enabled: true
+    drafts: false
+  path_filters:
+    - "!**/node_modules/**"
+    - "!**/dist/**"
+    - "!**/coverage/**"
+    - "!**/__pycache__/**"
+    - "!**/htmlcov/**"
+    - "!**/playwright-report/**"
+    - "!**/test-results/**"
+    - "!**/temp/**"
+    - "!conoscenza/**"
+    - "!conoscenza_Bkup/**"
+    - "!bmad-method/**"
+    - "apps/api/**"
+    - "apps/web/**"
+    - "docs/**"
+  tools:
+    eslint:
+      enabled: true
+    ruff:
+      enabled: true
+    gitleaks:
+      enabled: true
+    markdownlint:
+      enabled: true
+knowledge_base:
+  web_search:
+    enabled: true
+  code_guidelines:
+    enabled: true
+    filePatterns:
+      - "docs/architecture/**/*.md"
+      - "docs/tech-reference/**/*.md"
+      # Removed filesMD because it is listed in .gitignore and not visible to CodeRabbit
+chat:
+  auto_reply: true
