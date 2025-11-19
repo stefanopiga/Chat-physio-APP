@@ -37,7 +37,8 @@ Guide operative e riferimenti implementativi per componenti specifici:
 
 ### Frontend
 - [Addendum: Tailwind CSS e Shadcn/UI Setup](addendum-tailwind-shadcn-setup.md)
-- [Addendum: Shadcn/UI Components Registry](addendum-shadcn-components-registry.md) â€” Registro completo installazioni componenti Shadcn/UI per story, usage patterns e troubleshooting (Story 4.4)
+- [Addendum: Shadcn/UI Components Registry](addendum-shadcn-components-registry.md) â€" Registro completo installazioni componenti Shadcn/UI per story, usage patterns e troubleshooting (Story 4.4)
+- [Addendum: Zustand + Shadcn/UI Session Management Patterns](addendum-zustand-shadcn-session-management.md) â€" Production-ready patterns per Zustand store (persist middleware), Sheet responsive sidebar, AlertDialog async handling, DropdownMenu integration con code snippets, pitfalls e test strategies (Story 9.3)
 
 ### Operations & Governance
 - [Addendum: Enterprise Standards (SLO/SLI, Threat Modeling, SBOM, API Governance)](addendum-enterprise-standards.md)

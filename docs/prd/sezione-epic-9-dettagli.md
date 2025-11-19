@@ -2,8 +2,8 @@
 
 **Epic ID**: Epic 9  
 **Priority**: P2 (Post-MVP Phase 2 Enhancement)  
-**Status**: Planned  
-**Estimated Effort**: 31-41 hours (~1.5 settimane)
+**Status**: In Progress (Story 9.1-9.2 Done)  
+**Estimated Effort**: 31-41 hours base + 6-8h Story 9.6 optional (~1.5-2 settimane)
 
 ---
 
@@ -311,78 +311,74 @@ Authorization: Bearer {jwt_token}
 
 ---
 
-### Story 9.3: Frontend History UI (P1) — 6-8h
+### Story 9.3: Chat Session Management UI (P1) — 6-7h
 
-**Goal**: Implementare UI React per visualizzazione cronologia conversazioni, ricerca e navigazione storico.
+**Goal**: Implementare UI React per gestione completa sessioni chat (create, rename, delete, navigation) tramite menu laterale sidebar.
+
+**⚠️ CHANGE NOTE**: Requisiti modificati rispetto versione originale Epic 9. Story originale 9.3 (ConversationTimeline + HistorySearchBar + SessionDetailView) spostata a Story 9.6 come enhancement opzionale. Nuova Story 9.3 implementa funzionalità foundational session management richieste dall'utente.
 
 **Acceptance Criteria**:
-1. `ConversationTimeline` component mostra lista sessioni con preview
-2. `HistorySearchBar` component con autocomplete keywords
-3. `SessionDetailView` component per espansione singola conversazione
-4. Infinite scroll implementato per performance
-5. Highlight search terms nei risultati
-6. Export session button (JSON download)
-7. Responsive design (mobile-first)
-8. E2E tests per user flows principali
+1. Sidebar menu implementato con toggle sandwich icon (hamburger) in header
+2. Sidebar mostra lista completa conversazioni (session IDs visibili)
+3. Click conversazione → carica history e continua in chat principale
+4. "New Chat" button crea nuova sessione e pulisce UI
+5. Menu 3 pallini (⋮) per ogni conversazione con opzioni "Rename" e "Delete"
+6. Rename dialog: input text con conferma/annulla, aggiorna metadata DB
+7. Delete dialog: conferma "Sei sicuro?" con opzioni "Prosegui" e "Annulla"
+8. Delete elimina completamente da DB (non solo UI) via backend endpoint
+9. Sidebar responsive: slide-in overlay mobile, persistent desktop >1024px
+10. Backend endpoint `DELETE /chat/sessions/{sessionId}` implementato
 
-**UI Components Specifications**:
+**UI Layout Specification**:
 
-#### ConversationTimeline
-
-**Purpose**: Lista cronologica sessioni con preview primo messaggio.
-
-**Props**:
-```typescript
-interface ConversationTimelineProps {
-  sessions: ConversationSession[];
-  onSessionClick: (sessionId: string) => void;
-  onLoadMore: () => void;
-  hasMore: boolean;
-}
+```
+┌────────┬──────────────────────────────────┐
+│ ☰ Logo │         App Header               │  ← Sandwich icon toggle sidebar
+├────────┴──────────────────────────────────┤
+│                                            │
+│  [Sidebar Overlay]    Main Chat Content   │
+│  ┌──────────────┐                         │
+│  │ + New Chat   │                         │
+│  ├──────────────┤                         │
+│  │ Conv 1  ⋮    │← Click → load in chat   │
+│  │ Conv 2  ⋮    │← ⋮ menu → rename/delete │
+│  │ Conv 3  ⋮    │                         │
+│  │ Conv 4  ⋮    │                         │
+│  └──────────────┘                         │
+│                                            │
+└────────────────────────────────────────────┘
 ```
 
-**Layout**:
-```
-┌─────────────────────────────────────────┐
-│ 🔍 Search conversations...              │
-├─────────────────────────────────────────┤
-│ 📅 15 Gen 2025, 10:30                   │
-│ Q: Quali esercizi per lombalgia?        │
-│ 💬 12 messages                           │
-├─────────────────────────────────────────┤
-│ 📅 14 Gen 2025, 15:20                   │
-│ Q: Come trattare distorsione caviglia?  │
-│ 💬 8 messages                            │
-├─────────────────────────────────────────┤
-│           Load More...                   │
-└─────────────────────────────────────────┘
-```
+**Interaction Flows**:
 
-#### HistorySearchBar
+1. **New Chat Flow**:
+   - Click "New Chat" → generate new sessionId → clear messages array → focus input
 
-**Purpose**: Ricerca full-text con suggestions.
+2. **Load Conversation Flow**:
+   - Click conversation → load history via API (Story 9.2) → populate chat → close sidebar mobile
 
-**Features**:
-- Debounced input (300ms)
-- Keyword highlighting in results
-- Recent searches cache
-- Clear button
+3. **Rename Flow**:
+   - Click ⋮ → "Rename" → dialog con input → conferma → PATCH `/chat/sessions/{id}/metadata` → update UI list
 
-#### SessionDetailView
+4. **Delete Flow**:
+   - Click ⋮ → "Delete" → dialog "Sei sicuro di voler eliminare questa conversazione?" → "Prosegui"/"Annulla"
+   - If "Prosegui" → DELETE `/chat/sessions/{id}` → rimuovi da lista UI → se conversazione corrente, trigger "New Chat"
 
-**Purpose**: Espansione conversazione completa con citazioni.
+**Technical Components**:
 
-**Features**:
-- Conversazione completa user/assistant alternata
-- Citazioni espandibili (popover esistente)
-- Export button (JSON download)
-- "Continue conversation" link to chat
+- `ChatSidebar.tsx`: Main sidebar component con lista sessioni
+- `SessionListItem.tsx`: Single conversation item con 3-dot menu
+- `SessionMenuDropdown.tsx`: Dropdown menu con Rename/Delete
+- `RenameDialog.tsx`: Modal input rename con conferma
+- `DeleteConfirmDialog.tsx`: Modal conferma eliminazione
+- `useSessionManagement.ts`: Custom hook per CRUD operations
 
 **Dev Notes**:
-- Riusa componenti chat esistenti per message rendering
-- Infinite scroll: `react-infinite-scroll-component`
-- State management: React Query per caching
-- Accessibility: keyboard navigation, ARIA labels
+- Sidebar: Shadcn/UI `Sheet` component (mobile) + persistent `aside` (desktop)
+- 3-dot menu: Shadcn/UI `DropdownMenu`
+- Dialogs: Shadcn/UI `Dialog` + `AlertDialog`
+- State: Zustand store per lista sessioni attive
+- Backend: nuovo endpoint DELETE con hard delete DB (`DELETE FROM chat_messages WHERE session_id = ?`)
 
 ---
 
@@ -476,6 +472,84 @@ uuid,2025-01-15T10:30:05Z,assistant,"Gli esercizi...",doc_1;doc_2
 - Cache: Redis per analytics queries costose (TTL 1h)
 - Export: use Puppeteer per PDF generation
 - Permissions: analytics visible only to Admin role
+
+---
+
+### Story 9.6: Advanced History UI (P3 - Optional Enhancement) — 6-8h
+
+**Goal**: Implementare UI avanzata per visualizzazione cronologia conversazioni, ricerca full-text e navigazione storico.
+
+**⚠️ NOTE**: Story originale 9.3 spostata qui come enhancement opzionale. Implementare DOPO Story 9.3 (session management foundational).
+
+**Acceptance Criteria**:
+1. `ConversationTimeline` component mostra lista sessioni con preview primo messaggio
+2. `HistorySearchBar` component con autocomplete keywords full-text
+3. `SessionDetailView` component per espansione singola conversazione
+4. Infinite scroll implementato per performance
+5. Highlight search terms nei risultati
+6. Export session button (JSON download)
+7. Responsive design (mobile-first)
+8. E2E tests per user flows principali
+
+**UI Components Specifications**:
+
+#### ConversationTimeline
+
+**Purpose**: Lista cronologica sessioni con preview primo messaggio.
+
+**Props**:
+```typescript
+interface ConversationTimelineProps {
+  sessions: ConversationSession[];
+  onSessionClick: (sessionId: string) => void;
+  onLoadMore: () => void;
+  hasMore: boolean;
+}
+```
+
+**Layout**:
+```
+┌─────────────────────────────────────────┐
+│ 🔍 Search conversations...              │
+├─────────────────────────────────────────┤
+│ 📅 15 Gen 2025, 10:30                   │
+│ Q: Quali esercizi per lombalgia?        │
+│ 💬 12 messages                           │
+├─────────────────────────────────────────┤
+│ 📅 14 Gen 2025, 15:20                   │
+│ Q: Come trattare distorsione caviglia?  │
+│ 💬 8 messages                            │
+├─────────────────────────────────────────┤
+│           Load More...                   │
+└─────────────────────────────────────────┘
+```
+
+#### HistorySearchBar
+
+**Purpose**: Ricerca full-text con suggestions.
+
+**Features**:
+- Debounced input (300ms)
+- Keyword highlighting in results
+- Recent searches cache
+- Clear button
+
+#### SessionDetailView
+
+**Purpose**: Espansione conversazione completa con citazioni.
+
+**Features**:
+- Conversazione completa user/assistant alternata
+- Citazioni espandibili (popover esistente)
+- Export button (JSON download)
+- "Continue conversation" link to chat
+
+**Dev Notes**:
+- Riusa componenti chat esistenti per message rendering
+- Infinite scroll: `react-infinite-scroll-component`
+- State management: React Query per caching
+- Accessibility: keyboard navigation, ARIA labels
+- Integra con Story 9.2 (full-text search endpoint già disponibile)
 
 ---
 
@@ -664,8 +738,9 @@ Epic 9 is considered **COMPLETE** when:
 | Date | Version | Description | Author |
 |------|---------|-------------|--------|
 | 2025-11-06 | 1.0 | Epic 9 initial specification | John (PM) |
+| 2025-01-17 | 1.1 | Story 9.3 requisiti modificati: sostituita UI timeline/search con session management UI (sidebar + CRUD operations). Story originale 9.3 spostata a 9.6 come enhancement opzionale. Motivazione: requisiti utente per gestione foundational sessioni prioritaria rispetto analytics/search avanzate. | Bob (SM) |
 
 ---
 
-**Epic 9 Status**: 📝 **PLANNED** — Ready for Story Creation Phase
+**Epic 9 Status**: 🚧 **IN PROGRESS** — Story 9.1-9.2 Done, Story 9.3 Ready for Development
 
