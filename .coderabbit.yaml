@@ -6,6 +6,12 @@ reviews:
   auto_review:
     enabled: true
     drafts: false
+  # Abilita la generazione automatica di "finishing touches"
+  finishing_touches:
+    docstrings:
+      enabled: true
+    unit_tests:
+      enabled: true
   path_filters:
     - "!**/node_modules/**"
     - "!**/dist/**"
@@ -38,6 +44,22 @@ knowledge_base:
     filePatterns:
       - "docs/architecture/**/*.md"
       - "docs/tech-reference/**/*.md"
+
+# Istruzioni specifiche per la generazione di codice e test
+code_generation:
+  unit_tests:
+    path_instructions:
+      - path: "apps/api/**/*.py"
+        instructions: |
+          Usa pytest e pytest-asyncio.
+          Mocka le chiamate esterne (OpenAI, Supabase, Database).
+          Copri i casi limite e la gestione degli errori.
+      - path: "apps/web/**/*.tsx"
+        instructions: |
+          Usa Vitest e React Testing Library.
+          Testa il rendering dei componenti e le interazioni utente.
+          Mocka gli hook personalizzati.
+
       # Removed filesMD because it is listed in .gitignore and not visible to CodeRabbit
 chat:
   auto_reply: true
