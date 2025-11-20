@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useCallback, memo } from "react";
 import apiClient from "../lib/apiClient";
 import CitationBadge from "./CitationBadge";
 import CitationPopover from "./CitationPopover";
@@ -23,15 +23,15 @@ type Props = {
   loading?: boolean;
 };
 
-const ChatMessagesList: React.FC<Props> = ({ messages, loading = false }) => {
+const ChatMessagesList: React.FC<Props> = memo(({ messages, loading = false }) => {
   const [pendingFeedback, setPendingFeedback] = useState<string | null>(null);
   const [openCitation, setOpenCitation] = useState<string | null>(null);
 
-  async function handleVote(
+  const handleVote = useCallback(async (
     sessionId: string,
     messageId: string,
     vote: "up" | "down"
-  ) {
+  ) => {
     try {
       setPendingFeedback(messageId);
       // Garantisce che il render del bottone disabilitato avvenga prima della risposta
@@ -59,7 +59,7 @@ const ChatMessagesList: React.FC<Props> = ({ messages, loading = false }) => {
       // Mantiene lo stato disabilitato brevemente per UX/test stability
       setTimeout(() => setPendingFeedback(null), 200);
     }
-  }
+  }, []);
 
   return (
     <div className="flex flex-col gap-2" data-testid="chat-messages-list">
@@ -134,6 +134,8 @@ const ChatMessagesList: React.FC<Props> = ({ messages, loading = false }) => {
       {loading && <LoadingIndicator />}
     </div>
   );
-};
+});
+
+ChatMessagesList.displayName = "ChatMessagesList";
 
 export default ChatMessagesList;

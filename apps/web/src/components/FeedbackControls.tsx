@@ -1,4 +1,4 @@
-import React from "react";
+import React, { memo } from "react";
 
 type Props = {
   disabled?: boolean;
@@ -6,7 +6,7 @@ type Props = {
   onDown: () => void;
 };
 
-const FeedbackControls: React.FC<Props> = ({ disabled, onUp, onDown }) => {
+const FeedbackControls: React.FC<Props> = memo(({ disabled, onUp, onDown }) => {
   return (
     <div className="flex gap-2">
       <button
@@ -29,6 +29,8 @@ const FeedbackControls: React.FC<Props> = ({ disabled, onUp, onDown }) => {
       </button>
     </div>
   );
-};
+});
+
+FeedbackControls.displayName = "FeedbackControls";
 
 export default FeedbackControls;

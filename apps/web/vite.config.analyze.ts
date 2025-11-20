@@ -3,9 +3,22 @@ import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import path from "path";
 
+// Bundle analyzer configuration (optional - install with: npm install --save-dev rollup-plugin-visualizer)
+// import { visualizer } from 'rollup-plugin-visualizer';
+
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [react(), tailwindcss()],
+  plugins: [
+    react(),
+    tailwindcss(),
+    // Uncomment to enable bundle visualization:
+    // visualizer({
+    //   open: true,
+    //   gzipSize: true,
+    //   brotliSize: true,
+    //   filename: './dist/stats.html',
+    // }),
+  ],
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
@@ -17,7 +30,7 @@ export default defineConfig({
     minify: "terser",
     terserOptions: {
       compress: {
-        drop_console: true, // Rimuovi console.log in production
+        drop_console: true,
         drop_debugger: true,
         pure_funcs: ["console.log", "console.info", "console.debug"],
       },
@@ -26,7 +39,6 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks: {
-          // Separa vendor chunks per migliore caching
           "react-vendor": ["react", "react-dom", "react-router-dom"],
           "ui-vendor": [
             "@radix-ui/react-dialog",
@@ -34,18 +46,14 @@ export default defineConfig({
             "@radix-ui/react-select",
             "@radix-ui/react-slot",
           ],
-          // Charts separato - usato solo in AnalyticsPage
           "charts": ["recharts"],
           "supabase": ["@supabase/supabase-js"],
         },
       },
     },
-    // Chunk size warnings
     chunkSizeWarningLimit: 1000,
-    // Source maps per debugging (disabilita in production se non necessari)
-    sourcemap: false,
+    sourcemap: true, // Enable for analysis
   },
-  // Ottimizzazioni per dev
   server: {
     hmr: {
       overlay: true,

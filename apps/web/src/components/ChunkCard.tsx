@@ -1,4 +1,4 @@
-import React from "react";
+import React, { memo } from "react";
 
 type DebugChunk = {
   chunk_id: string | null;
@@ -16,7 +16,7 @@ interface ChunkCardProps {
   chunk: DebugChunk;
 }
 
-const ChunkCard: React.FC<ChunkCardProps> = ({ chunk }) => {
+const ChunkCard: React.FC<ChunkCardProps> = memo(({ chunk }) => {
   const title =
     chunk.metadata?.document_name ||
     chunk.metadata?.document_id ||
@@ -57,7 +57,9 @@ const ChunkCard: React.FC<ChunkCardProps> = ({ chunk }) => {
       </details>
     </div>
   );
-};
+});
+
+ChunkCard.displayName = "ChunkCard";
 
 export default ChunkCard;
 

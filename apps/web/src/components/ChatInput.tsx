@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, memo } from "react";
 import { Textarea } from "@/components/ui/textarea";
 
 type Props = {
@@ -6,7 +6,7 @@ type Props = {
   loading?: boolean;
 };
 
-const ChatInput: React.FC<Props> = ({ onSubmit, loading }) => {
+const ChatInput: React.FC<Props> = memo(({ onSubmit, loading }) => {
   const [question, setQuestion] = useState("");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -73,6 +73,8 @@ const ChatInput: React.FC<Props> = ({ onSubmit, loading }) => {
       </button>
     </form>
   );
-};
+});
+
+ChatInput.displayName = "ChatInput";
 
 export default ChatInput;
