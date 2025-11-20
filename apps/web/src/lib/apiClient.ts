@@ -105,8 +105,20 @@ async function refreshAccessToken(): Promise<string | null> {
   }
 }
 
+// Simple in-memory cache for GET requests (5 min TTL)
+const requestCache = new Map<string, { data: unknown; timestamp: number }>();
+const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+
 const apiClient = {
-  async get(endpoint: string) {
+  async get(endpoint: string, useCache = false) {
+    // Check cache first if enabled
+    if (useCache) {
+      const cached = requestCache.get(endpoint);
+      if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
+        return cached.data;
+      }
+    }
+
     const token = await getAccessToken();
     const response = await fetch(endpoint, {
       headers: { Authorization: `Bearer ${token}` },
@@ -130,7 +142,14 @@ const apiClient = {
     }
 
     if (!response.ok) throw new Error(`API call failed: ${response.status}`);
-    return response.json();
+    const data = await response.json();
+    
+    // Store in cache if enabled
+    if (useCache) {
+      requestCache.set(endpoint, { data, timestamp: Date.now() });
+    }
+    
+    return data;
   },
 
   async post<TReq, TRes>(endpoint: string, body: TReq): Promise<TRes> {

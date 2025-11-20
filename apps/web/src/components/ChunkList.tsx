@@ -1,4 +1,4 @@
-import React from "react";
+import React, { memo } from "react";
 import ChunkCard from "./ChunkCard";
 
 type DebugChunk = {
@@ -17,7 +17,7 @@ interface ChunkListProps {
   chunks: DebugChunk[];
 }
 
-const ChunkList: React.FC<ChunkListProps> = ({ chunks }) => {
+const ChunkList: React.FC<ChunkListProps> = memo(({ chunks }) => {
   const isEmpty = !chunks || chunks.length === 0;
 
   return (
@@ -40,7 +40,9 @@ const ChunkList: React.FC<ChunkListProps> = ({ chunks }) => {
       </div>
     </section>
   );
-};
+});
+
+ChunkList.displayName = "ChunkList";
 
 export default ChunkList;
 

@@ -7,16 +7,15 @@ import {
   CardDescription,
   CardContent,
 } from "@/components/ui/card";
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  Legend,
-} from "recharts";
+// Ottimizzazione: import specifici da recharts per tree-shaking
+import { BarChart } from "recharts/lib/chart/BarChart";
+import { Bar } from "recharts/lib/cartesian/Bar";
+import { XAxis } from "recharts/lib/cartesian/XAxis";
+import { YAxis } from "recharts/lib/cartesian/YAxis";
+import { CartesianGrid } from "recharts/lib/cartesian/CartesianGrid";
+import { Tooltip } from "recharts/lib/component/Tooltip";
+import { ResponsiveContainer } from "recharts/lib/component/ResponsiveContainer";
+import { Legend } from "recharts/lib/component/Legend";
 
 // -------------------------------
 // Types
