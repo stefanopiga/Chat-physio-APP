@@ -1,4 +1,4 @@
-# API Service - FisioRAG Backend
+# API Service - FisioRAG Backend.
 
 Servizio FastAPI per knowledge base management, RAG retrieval e student authentication.
 
