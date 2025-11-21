@@ -357,6 +357,45 @@ const apiClient = {
 
     return attemptFetch(0);
   },
+
+  async deleteSession(sessionId: string): Promise<void> {
+    const endpoint = `${API_BASE}/chat/sessions/${sessionId}`;
+    const token = await getAccessToken();
+    
+    const response = await fetch(endpoint, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      }
+    });
+    
+    // Automatic refresh on 401
+    if (response.status === 401) {
+      const newToken = await refreshAccessToken();
+      if (newToken) {
+        const retryResponse = await fetch(endpoint, {
+          method: 'DELETE',
+          headers: {
+            'Authorization': `Bearer ${newToken}`,
+          }
+        });
+        
+        if (retryResponse.status === 404) return;
+        if (!retryResponse.ok) throw new Error(`HTTP ${retryResponse.status}: Failed to delete session`);
+        return;
+      } else {
+        throw new Error("401");
+      }
+    }
+    
+    if (!response.ok) {
+      if (response.status === 404) {
+        // Sessione già eliminata o non esiste
+        return;
+      }
+      throw new Error(`HTTP ${response.status}: Failed to delete session`);
+    }
+  },
 };
 
 export default apiClient;
