@@ -331,6 +331,59 @@ async def get_session_history(
         )
 
 
+@router.delete("/sessions/{sessionId}", status_code=204)
+async def delete_chat_session(
+    sessionId: str,
+    request: Request,
+    payload: Annotated[TokenPayload, Depends(_auth_bridge)],
+):
+    """
+    Delete session endpoint (Story 9.3).
+    
+    Hard delete sessione e tutti i messaggi associati.
+    
+    Args:
+        sessionId: Session identifier
+        request: FastAPI Request
+        payload: JWT payload verificato
+        
+    Security:
+        - JWT authentication required
+        - Rate limiting: 10 req/min (Story 9.3)
+    """
+    # AC8: Rate limiting 10 req/min
+    rate_limit_service.enforce_rate_limit(
+        key=_resolve_chat_rate_limit_key(request, payload),
+        scope="delete_session",
+        window_seconds=60,
+        max_requests=10,
+    )
+    
+    if not sessionId or not sessionId.strip():
+        raise HTTPException(status_code=400, detail="sessionId mancante")
+
+    # Check if DB is available
+    if not database.db_pool:
+        logger.error({
+            "event": "delete_session_no_db",
+            "session_id": sessionId
+        })
+        raise HTTPException(status_code=503, detail="Database unavailable")
+
+    try:
+        persistence_service = ConversationPersistenceService(database.db_pool)
+        await persistence_service.delete_session(sessionId)
+        return Response(status_code=204)
+        
+    except Exception as exc:
+        logger.error({
+            "event": "delete_session_failed",
+            "session_id": sessionId,
+            "error": str(exc)
+        }, exc_info=True)
+        raise HTTPException(status_code=500, detail="Failed to delete session")
+
+
 @router.post("/sessions/{sessionId}/messages", response_model=ChatMessageCreateResponse)
 async def create_chat_message(
     sessionId: str,
