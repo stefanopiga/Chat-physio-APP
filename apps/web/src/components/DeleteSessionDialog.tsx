@@ -49,6 +49,7 @@ export function DeleteSessionDialog({
       onOpenChange(false)
       
     } catch (error) {
+      console.error("Delete session error:", error)
       toast.error('Errore durante eliminazione sessione')
       // Non chiudere dialog su errore per permettere retry
     } finally {

@@ -373,15 +373,15 @@ async def delete_chat_session(
     try:
         persistence_service = ConversationPersistenceService(database.db_pool)
         await persistence_service.delete_session(sessionId)
-        return
+        return Response(status_code=204)
         
     except Exception as exc:
-        logger.exception({
+        logger.error({
             "event": "delete_session_failed",
             "session_id": sessionId,
             "error": str(exc)
-        })
-+        raise HTTPException(status_code=500, detail="Failed to delete session") from exc
+        }, exc_info=True)
+        raise HTTPException(status_code=500, detail="Failed to delete session")
 
 
 @router.post("/sessions/{sessionId}/messages", response_model=ChatMessageCreateResponse)
