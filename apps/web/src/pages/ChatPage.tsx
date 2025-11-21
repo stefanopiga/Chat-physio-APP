@@ -42,7 +42,7 @@ const ChatPage: React.FC = () => {
         handleNewChat();
       }
     }
-  }, [hydrated, currentSessionId, sessions.length]);
+  }, [hydrated, currentSessionId, sessions, setCurrentSession, handleNewChat]);
 
   const handleNewChat = useCallback(() => {
     const newId = crypto.randomUUID();

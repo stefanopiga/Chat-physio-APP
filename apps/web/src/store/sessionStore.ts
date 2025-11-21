@@ -23,7 +23,7 @@ interface SessionState {
 
 export const useSessionStore = create<SessionState>()(
   persist(
-    (set, get) => ({
+    (set) => ({
       sessions: [],
       currentSessionId: null,
       

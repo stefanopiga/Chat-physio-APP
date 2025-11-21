@@ -8,10 +8,9 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet'
-import { useSessionStore, SessionMetadata } from '@/store/sessionStore'
+import { useSessionStore } from '@/store/sessionStore'
 import { SessionListItem } from './SessionListItem'
 import { useHydration } from '@/hooks/useHydration'
-import apiClient from '@/lib/apiClient'
 
 interface ChatSidebarProps {
   currentSessionId: string | null
@@ -36,7 +35,6 @@ export function ChatSidebar({
 
   const hydrated = useHydration()
   const sessions = useSessionStore((state) => state.sessions)
-  const setSessions = useSessionStore((state) => state.setSessions)
   
   // Sync sessions on mount
   useEffect(() => {
