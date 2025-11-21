@@ -255,6 +255,39 @@ class ConversationPersistenceService:
                 "error_type": type(exc).__name__,
             }, exc_info=True)
             return []
+
+    async def delete_session(self, session_id: str) -> bool:
+        """
+        Hard delete session and all its messages.
+        
+        Story 9.3: Hard delete implementation.
+        
+        Args:
+            session_id: Session identifier
+            
+        Returns:
+            bool: True if operation executed successfully (even if no rows deleted)
+        """
+        try:
+            query = "DELETE FROM chat_messages WHERE session_id = $1"
+            
+            async with self.db_pool.acquire() as conn:
+                await conn.execute(query, session_id)
+            
+            logger.info({
+                "event": "delete_session_success",
+                "session_id": session_id,
+            })
+            return True
+            
+        except Exception as exc:
+            logger.error({
+                "event": "delete_session_error",
+                "session_id": session_id,
+                "error": str(exc),
+                "error_type": type(exc).__name__,
+            }, exc_info=True)
+            raise
     
     def _generate_idempotency_key(
         self,
